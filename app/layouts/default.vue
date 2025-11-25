@@ -1,7 +1,7 @@
 <template>
   <div>
     <nav
-      class="h-14 w-full flex items-center border-b border-border justify-between px-6"
+      class="h-14 w-full bg-surface flex items-center border-b border-border justify-between px-6"
     >
       <h3 class="font-serif text-primary dark:text-text">
         UP Cebu Alumni Registration Form
