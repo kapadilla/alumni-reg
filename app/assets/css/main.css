@@ -1,0 +1,94 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #7b1113;
+  --color-secondary: #014421;
+  --color-accent: #fbbf24;
+  --color-subtle: var(--color-gray-500);
+  --color-background: var(--color-gray-100);
+  --color-surface: var(--color-white);
+  --color-border: var(--color-gray-300);
+  --color-text: var(--color-gray-900);
+
+  --font-sans: "Inter", sans-serif;
+  --font-serif: "Merriweather", serif;
+}
+
+:root {
+  @media (prefers-color-scheme: dark) {
+    --color-primary: #ff6b6b;
+    --color-secondary: #51cf66;
+    --color-subtle: var(--color-slate-400);
+    --color-background: var(--color-gray-950);
+    --color-surface: var(--color-slate-900);
+    --color-border: var(--color-slate-700);
+    --color-text: var(--color-slate-200);
+  }
+}
+
+.dark {
+  --color-primary: #ff6b6b;
+  --color-secondary: #51cf66;
+  --color-subtle: var(--color-slate-400);
+  --color-background: var(--color-gray-950);
+  --color-surface: var(--color-slate-900);
+  --color-border: var(--color-slate-700);
+  --color-text: var(--color-slate-200);
+}
+
+html:not(.dark) {
+  --color-primary: #7b1113;
+  --color-secondary: #014421;
+  --color-accent: #fbbf24;
+  --color-subtle: var(--color-gray-500);
+  --color-background: var(--color-gray-100);
+  --color-surface: var(--color-white);
+  --color-border: var(--color-gray-300);
+  --color-text: var(--color-gray-900);
+}
+
+@layer utilities {
+  [class*="rounded"]:not([class*="rounded-full"]) {
+    corner-shape: superellipse(1.2);
+  }
+}
+
+@utility corner-smooth {
+  corner-shape: superellipse(1.2);
+}
+
+@utility corner-squircle {
+  corner-shape: squircle;
+}
+
+@layer base {
+  /* Base styles for HTML elements */
+  body {
+    color: var(--color-text);
+    background-color: var(--color-background);
+  }
+
+  h1 {
+    font-size: var(--text-4xl);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--text-4xl--line-height);
+  }
+
+  h2 {
+    font-size: var(--text-3xl);
+    font-weight: var(--font-weight-semibold);
+  }
+
+  h3 {
+    font-size: var(--text-2xl);
+    font-weight: var(--font-weight-semibold);
+  }
+
+  p {
+    margin-bottom: var(--spacing-4);
+  }
+
+  button {
+    cursor: pointer;
+  }
+}
