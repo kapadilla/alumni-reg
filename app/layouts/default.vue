@@ -1,15 +1,9 @@
 <template>
   <div>
-    <nav
-      class="h-14 w-full bg-surface flex items-center border-b border-border justify-between px-6"
-    >
-      <h3 class="font-serif text-primary dark:text-text">
-        UP Cebu Alumni Registration Form
-      </h3>
-      <DarkModeToggle />
-    </nav>
-    <main class="w-7xl">
+    <AppNavbar />
+    <main class="w-full">
       <slot />
     </main>
+    <!-- TODO: Add footer -->
   </div>
 </template>
