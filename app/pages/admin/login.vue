@@ -24,7 +24,7 @@ const handleLogin = () => {
       <div class="bg-surface rounded-2xl border border-border p-8 md:p-10">
         <!-- Header -->
         <div class="text-center mb-8">
-          <h1 class="text-2xl font-serif md:text-3xl font-bold text-text mb-2">
+          <h1 class="text-2xl md:text-3xl font-bold text-text mb-2">
             Admin Login
           </h1>
           <p class="text-subtle text-sm">

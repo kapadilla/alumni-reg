@@ -69,6 +69,15 @@ html:not(.dark) {
     background-color: var(--color-background);
   }
 
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-serif);
+  }
+
   h1 {
     font-size: var(--text-4xl);
     font-weight: var(--font-weight-bold);

@@ -12,7 +12,7 @@
               <span class="text-white font-bold text-2xl">UP</span>
             </div>
             <div>
-              <h3 class="font-serif text-lg font-bold text-text leading-tight">
+              <h3 class="text-lg font-bold text-text leading-tight">
                 University of the Philippines
               </h3>
               <p class="text-sm text-text">Alumni Association - Cebu Chapter</p>
@@ -47,9 +47,7 @@
 
         <!-- Right side: Sections menu -->
         <div class="flex flex-col gap-4 md:items-end">
-          <h3
-            class="text-primary font-serif font-bold text-xl uppercase tracking-wide"
-          >
+          <h3 class="text-primary font-bold text-xl uppercase tracking-wide">
             Sections
           </h3>
           <nav class="flex flex-col gap-2 text-sm md:text-right">
