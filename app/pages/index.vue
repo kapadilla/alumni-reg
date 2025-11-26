@@ -66,10 +66,10 @@ const handleSubmit = () => {
         <!-- Sidebar with steps -->
         <aside class="w-full lg:col-span-3">
           <div
-            class="w-full bg-surface rounded-xl border border-border p-4 md:p-6 lg:sticky lg:top-8"
+            class="w-full bg-surface rounded-xl border border-border p-2 md:p-6 lg:sticky lg:top-8"
           >
             <div
-              class="flex lg:flex-col flex-row flex-wrap lg:flex-nowrap justify-evenly lg:justify-start items-center lg:items-start gap-4 lg:gap-0 lg:space-y-0 px-2"
+              class="flex lg:flex-col flex-row flex-wrap lg:flex-nowrap justify-evenly lg:justify-start items-center lg:items-start gap-2 lg:gap-0 lg:space-y-0 px-0 lg:px-2"
             >
               <FormStepIndicator
                 step-label="STEP 01"
@@ -109,7 +109,7 @@ const handleSubmit = () => {
 
         <!-- Main form area -->
         <main class="lg:col-span-9">
-          <div class="bg-surface rounded-2xl border border-border p-4 md:p-8">
+          <div class="bg-surface rounded-2xl border border-border p-2 md:p-8">
             <form @submit.prevent="handleSubmit">
               <PersonalDetailsStep
                 v-if="currentStep === 0"
@@ -138,7 +138,7 @@ const handleSubmit = () => {
                 <button
                   v-if="currentStep > 0"
                   type="button"
-                  class="px-6 py-3 rounded-lg border border-border text-text hover:bg-background transition-colors font-medium"
+                  class="px-4 py-2 md:px-5 md:py-2.5 text-sm md:text-base rounded-lg border border-border text-text hover:bg-background transition-colors font-medium"
                   @click="previousStep"
                 >
                   Previous
@@ -148,24 +148,24 @@ const handleSubmit = () => {
                 <button
                   v-if="currentStep < 3"
                   type="button"
-                  class="px-6 py-3 rounded-xl bg-primary text-white hover:bg-opacity-90 transition-colors flex items-center gap-2 font-medium group"
+                  class="px-4 py-2 md:px-5 md:py-2.5 text-sm md:text-base rounded-xl bg-primary text-white hover:bg-opacity-90 transition-colors flex items-center gap-2 font-medium group"
                   @click="nextStep"
                 >
                   Next Step
                   <Icon
                     name="material-symbols:arrow-forward"
-                    class="transition-transform group-hover:translate-x-1"
+                    class="w-4 h-4 md:w-5 md:h-5 transition-transform group-hover:translate-x-1"
                   />
                 </button>
                 <button
                   v-else
                   type="submit"
-                  class="px-6 py-3 rounded-xl bg-primary text-white hover:bg-opacity-90 transition-colors flex items-center gap-2 font-medium group"
+                  class="px-4 py-2 md:px-5 md:py-2.5 text-sm md:text-base rounded-xl bg-primary text-white hover:bg-opacity-90 transition-colors flex items-center gap-2 font-medium group"
                 >
                   Submit
                   <Icon
                     name="material-symbols:arrow-forward"
-                    class="transition-transform group-hover:translate-x-1"
+                    class="w-4 h-4 md:w-5 md:h-5 transition-transform group-hover:translate-x-1"
                   />
                 </button>
               </div>

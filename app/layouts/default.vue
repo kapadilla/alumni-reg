@@ -4,6 +4,6 @@
     <main class="w-full">
       <slot />
     </main>
-    <!-- TODO: Add footer -->
+    <AppFooter />
   </div>
 </template>
