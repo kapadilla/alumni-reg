@@ -39,10 +39,7 @@ const nextStep = () => {
   if (currentStep.value < 3) {
     currentStep.value++;
     nextTick(() => {
-      formContainer.value?.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
+      window.scrollTo({ top: 0, behavior: "smooth" });
     });
   }
 };
@@ -51,10 +48,7 @@ const previousStep = () => {
   if (currentStep.value > 0) {
     currentStep.value--;
     nextTick(() => {
-      formContainer.value?.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
+      window.scrollTo({ top: 0, behavior: "smooth" });
     });
   }
 };
