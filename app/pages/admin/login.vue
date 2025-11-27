@@ -1,4 +1,8 @@
 <script setup lang="ts">
+definePageMeta({
+  layout: "auth",
+});
+
 const email = ref("");
 const password = ref("");
 const showPassword = ref(false);
@@ -18,7 +22,7 @@ const handleLogin = () => {
 
 <template>
   <div
-    class="min-h-screen bg-background flex items-center justify-center py-8 px-4"
+    class="min-h-[calc(100vh-56px)] bg-background flex items-center justify-center py-8 px-4"
   >
     <div class="w-full max-w-md">
       <div class="bg-surface rounded-2xl border border-border p-8 md:p-10">

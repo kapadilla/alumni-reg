@@ -1,13 +1,19 @@
 <script setup lang="ts">
+interface ProfessionalData {
+  currentEmployer: string;
+  jobTitle: string;
+  industry: string;
+}
+
 const props = defineProps<{
-  formData: Record<string, string>;
+  formData: ProfessionalData;
 }>();
 
 const emit = defineEmits<{
-  "update:formData": [data: Record<string, string>];
+  "update:formData": [data: ProfessionalData];
 }>();
 
-const updateField = (field: string, value: string) => {
+const updateField = (field: keyof ProfessionalData, value: string) => {
   emit("update:formData", { ...props.formData, [field]: value });
 };
 </script>

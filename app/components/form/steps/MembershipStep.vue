@@ -1,10 +1,15 @@
 <script setup lang="ts">
+interface MembershipData {
+  membershipType: string;
+  paymentMethod: string;
+}
+
 const props = defineProps<{
-  formData: Record<string, string>;
+  formData: MembershipData;
 }>();
 
 const emit = defineEmits<{
-  "update:formData": [data: Record<string, string>];
+  "update:formData": [data: MembershipData];
 }>();
 
 const membershipOptions = [
@@ -18,7 +23,7 @@ const paymentOptions = [
   { value: "cash", label: "Cash" },
 ];
 
-const updateField = (field: string, value: string) => {
+const updateField = (field: keyof MembershipData, value: string) => {
   emit("update:formData", { ...props.formData, [field]: value });
 };
 </script>

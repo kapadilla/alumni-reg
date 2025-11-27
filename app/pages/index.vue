@@ -1,5 +1,6 @@
 <script setup lang="ts">
 const currentStep = ref(0);
+const formContainer = ref<HTMLElement | null>(null);
 
 // Form data for each step
 const personalDetails = ref({
@@ -37,12 +38,24 @@ const membership = ref({
 const nextStep = () => {
   if (currentStep.value < 3) {
     currentStep.value++;
+    nextTick(() => {
+      formContainer.value?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    });
   }
 };
 
 const previousStep = () => {
   if (currentStep.value > 0) {
     currentStep.value--;
+    nextTick(() => {
+      formContainer.value?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    });
   }
 };
 
@@ -109,24 +122,27 @@ const handleSubmit = () => {
 
         <!-- Main form area -->
         <main class="lg:col-span-9">
-          <div class="bg-surface rounded-2xl border border-border p-2 md:p-8">
+          <div
+            ref="formContainer"
+            class="bg-surface rounded-2xl border border-border p-2 md:p-8"
+          >
             <form @submit.prevent="handleSubmit">
-              <PersonalDetailsStep
+              <FormStepsPersonalDetailsStep
                 v-if="currentStep === 0"
                 :form-data="personalDetails"
                 @update:form-data="personalDetails = $event"
               />
-              <AcademicStatusStep
+              <FormStepsAcademicStatusStep
                 v-if="currentStep === 1"
                 :form-data="academicStatus"
                 @update:form-data="academicStatus = $event"
               />
-              <ProfessionalStep
+              <FormStepsProfessionalStep
                 v-if="currentStep === 2"
                 :form-data="professional"
                 @update:form-data="professional = $event"
               />
-              <MembershipStep
+              <FormStepsMembershipStep
                 v-if="currentStep === 3"
                 :form-data="membership"
                 @update:form-data="membership = $event"
@@ -152,10 +168,24 @@ const handleSubmit = () => {
                   @click="nextStep"
                 >
                   Next Step
-                  <Icon
-                    name="material-symbols:arrow-forward"
-                    class="size-4 md:size-5 transition-transform group-hover:translate-x-1"
-                  />
+                  <svg
+                    class="size-4 md:size-5"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path
+                      d="M5 12h14"
+                      class="opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                    />
+                    <path
+                      d="M13 6l6 6-6 6"
+                      class="transition-transform duration-200 group-hover:translate-x-0 -translate-x-1.5"
+                    />
+                  </svg>
                 </button>
                 <button
                   v-else
@@ -163,10 +193,24 @@ const handleSubmit = () => {
                   class="px-4 py-2 md:px-5 md:py-2.5 text-sm md:text-base rounded-xl bg-primary text-white hover:bg-opacity-90 transition-colors flex items-center gap-2 font-medium group"
                 >
                   Submit
-                  <Icon
-                    name="material-symbols:arrow-forward"
-                    class="size-4 md:size-5 transition-transform group-hover:translate-x-1"
-                  />
+                  <svg
+                    class="size-4 md:size-5"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path
+                      d="M5 12h14"
+                      class="opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                    />
+                    <path
+                      d="M13 6l6 6-6 6"
+                      class="transition-transform duration-200 group-hover:translate-x-0 -translate-x-1.5"
+                    />
+                  </svg>
                 </button>
               </div>
             </form>

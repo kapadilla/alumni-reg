@@ -1,10 +1,25 @@
 <script setup lang="ts">
+interface PersonalDetailsData {
+  title: string;
+  firstName: string;
+  lastName: string;
+  suffix: string;
+  maidenName: string;
+  dateOfBirth: string;
+  email: string;
+  mobileNumber: string;
+  currentAddress: string;
+  province: string;
+  city: string;
+  barangay: string;
+}
+
 const props = defineProps<{
-  formData: Record<string, string>;
+  formData: PersonalDetailsData;
 }>();
 
 const emit = defineEmits<{
-  "update:formData": [data: Record<string, string>];
+  "update:formData": [data: PersonalDetailsData];
 }>();
 
 const titleOptions = [
@@ -29,7 +44,7 @@ const barangayOptions = [
   { value: "apas", label: "Barangay Apas" },
 ];
 
-const updateField = (field: string, value: string) => {
+const updateField = (field: keyof PersonalDetailsData, value: string) => {
   emit("update:formData", { ...props.formData, [field]: value });
 };
 </script>

@@ -1,13 +1,19 @@
 <script setup lang="ts">
+interface AcademicStatusData {
+  degreeProgram: string;
+  yearGraduated: string;
+  studentNumber: string;
+}
+
 const props = defineProps<{
-  formData: Record<string, string>;
+  formData: AcademicStatusData;
 }>();
 
 const emit = defineEmits<{
-  "update:formData": [data: Record<string, string>];
+  "update:formData": [data: AcademicStatusData];
 }>();
 
-const updateField = (field: string, value: string) => {
+const updateField = (field: keyof AcademicStatusData, value: string) => {
   emit("update:formData", { ...props.formData, [field]: value });
 };
 </script>
