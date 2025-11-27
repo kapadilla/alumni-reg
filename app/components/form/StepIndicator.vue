@@ -15,7 +15,7 @@ defineProps<{
       class="flex flex-col lg:flex-row items-center gap-0 lg:gap-3 w-full lg:w-auto"
     >
       <div
-        class="w-10 h-10 lg:w-12 lg:h-12 rounded-full flex items-center justify-center border-2 transition-all duration-500 ease-in-out shrink-0"
+        class="size-10 lg:size-12 rounded-full flex items-center justify-center border-2 transition-all duration-500 ease-in-out shrink-0"
         :class="
           isActive
             ? 'bg-primary border-primary text-white'
@@ -28,9 +28,9 @@ defineProps<{
           <FormCheckmarkIcon
             v-if="isCompleted"
             key="check"
-            size="w-5 h-5 lg:w-6 lg:h-6"
+            size="size-5 lg:size-6"
           />
-          <Icon v-else :key="icon" :name="icon" class="w-5 h-5 lg:w-6 lg:h-6" />
+          <Icon v-else :key="icon" :name="icon" class="size-5 lg:size-6" />
         </Transition>
       </div>
       <!-- Mobile label -->

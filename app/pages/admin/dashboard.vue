@@ -84,7 +84,7 @@ const recentActivity = ref([
           <!-- Arrow Icon -->
           <Icon
             name="material-symbols:arrow-forward"
-            class="w-5 h-5 text-subtle absolute top-4 right-4 md:top-6 md:right-6 transition-transform duration-200 group-hover:translate-x-1"
+            class="size-5 text-subtle absolute top-4 right-4 md:top-6 md:right-6 transition-transform duration-200 group-hover:translate-x-1"
           />
         </NuxtLink>
       </div>

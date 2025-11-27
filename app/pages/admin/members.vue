@@ -55,8 +55,15 @@ const members = ref([
       <div
         class="p-4 md:p-6 border-b border-border flex items-center justify-between"
       >
-        <h2 class="text-lg font-semibold text-text">
-          Total Members ({{ members.length }})
+        <h2
+          class="text-lg font-semibold text-text flex items-center gap-3 leading-none"
+        >
+          Total Members
+          <span
+            class="text-xs font-semibold size-6 rounded-lg bg-secondary text-white flex items-center justify-center -translate-y-px"
+          >
+            {{ members.length }}
+          </span>
         </h2>
         <button
           class="px-4 py-2 text-sm bg-primary text-white rounded-lg hover:bg-opacity-90 transition-colors"

@@ -24,7 +24,7 @@
             <div class="flex items-start gap-2">
               <Icon
                 name="material-symbols:location-on"
-                class="w-5 h-5 text-primary shrink-0 mt-0.5"
+                class="size-5 text-primary shrink-0 mt-0.5"
               />
               <span class="select-all"
                 >Gorordo Ave., Lahug, Cebu City, Cebu 6000</span
@@ -33,7 +33,7 @@
             <div class="flex items-center gap-2">
               <Icon
                 name="material-symbols:mail"
-                class="w-5 h-5 text-primary shrink-0"
+                class="size-5 text-primary shrink-0"
               />
               <a
                 href="mailto:oar.upcebu@up.edu.ph"

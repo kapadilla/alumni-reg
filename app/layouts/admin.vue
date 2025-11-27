@@ -35,29 +35,16 @@ const closeMobileMenu = () => {
   <div class="flex flex-col min-h-screen bg-background">
     <!-- Header - Full Width -->
     <div class="fixed top-0 left-0 right-0 z-50">
-      <AppNavbar
-        :show-menu-button="true"
-        @toggle-menu="isMobileMenuOpen = !isMobileMenuOpen"
-      />
+      <AdminNavbar @toggle-menu="isMobileMenuOpen = !isMobileMenuOpen" />
     </div>
 
     <!-- Container for Sidebar and Main Content -->
-    <div class="flex pt-14" style="min-height: calc(100vh - 56px)">
+    <div class="flex pt-14 min-h-[calc(100vh-56px)]">
       <!-- Desktop Sidebar wrapper -->
-      <div
-        class="hidden lg:block w-16 shrink-0"
-        style="height: calc(100vh - 56px)"
-      >
+      <div class="hidden lg:block w-16 shrink-0 h-[calc(100vh-56px)]">
         <aside
-          class="fixed left-0 border-r border-border flex flex-col overflow-y-auto overflow-x-hidden transition-all duration-200 bg-surface"
-          :class="isSidebarExpanded ? 'shadow-2xl' : ''"
-          :style="{
-            top: '56px',
-            height: 'calc(100vh - 56px)',
-            width: isSidebarExpanded ? '256px' : '64px',
-            backgroundColor: 'var(--color-surface)',
-            zIndex: 999,
-          }"
+          class="fixed left-0 top-14 h-[calc(100vh-56px)] border-r border-border flex flex-col overflow-y-auto overflow-x-hidden transition-all duration-200 bg-surface z-999"
+          :class="[isSidebarExpanded ? 'shadow-2xl w-64' : 'w-16']"
           @mouseenter="isSidebarExpanded = true"
           @mouseleave="isSidebarExpanded = false"
         >
@@ -67,7 +54,7 @@ const closeMobileMenu = () => {
               v-for="item in navigationItems"
               :key="item.href"
               :to="item.href"
-              class="h-10 transition-all duration-200 ease-in-out flex items-center rounded-lg text-sm font-medium overflow-hidden active:scale-[0.97]"
+              class="h-10 transition-all duration-200 ease-in-out flex items-center rounded-lg text-sm font-medium overflow-hidden active:scale-[0.97] corner-squircle"
               :class="[
                 route.path === item.href
                   ? 'bg-primary text-white'
@@ -76,7 +63,7 @@ const closeMobileMenu = () => {
               ]"
             >
               <div class="flex items-center justify-center w-10 shrink-0">
-                <Icon :name="item.icon" class="w-5 h-5" />
+                <Icon :name="item.icon" class="size-5" />
               </div>
               <span
                 v-if="isSidebarExpanded"
@@ -91,11 +78,11 @@ const closeMobileMenu = () => {
           <div class="px-2 pb-2 border-t border-border pt-2">
             <NuxtLink
               to="/admin/login"
-              class="h-10 transition-all duration-200 ease-in-out flex items-center rounded-lg text-sm font-medium text-text hover:bg-background overflow-hidden active:scale-[0.97]"
+              class="h-10 transition-all duration-200 ease-in-out flex items-center rounded-lg text-sm font-medium text-text hover:bg-background overflow-hidden active:scale-[0.97] corner-squircle"
               :class="isSidebarExpanded ? 'w-full' : 'w-10 justify-center'"
             >
               <div class="flex items-center justify-center w-10 shrink-0">
-                <Icon name="material-symbols:logout" class="w-5 h-5" />
+                <Icon name="material-symbols:logout" class="size-5" />
               </div>
               <span
                 v-if="isSidebarExpanded"
@@ -118,8 +105,7 @@ const closeMobileMenu = () => {
     <Transition name="mobile-menu">
       <div
         v-if="isMobileMenuOpen"
-        class="lg:hidden fixed inset-0 z-[100] bg-black/50"
-        style="top: 56px"
+        class="lg:hidden fixed inset-0 z-100 bg-black/50 top-14"
         @click="closeMobileMenu"
       >
         <div
@@ -135,7 +121,7 @@ const closeMobileMenu = () => {
                 aria-label="Close menu"
                 @click="closeMobileMenu"
               >
-                <Icon name="material-symbols:close" class="w-5 h-5" />
+                <Icon name="material-symbols:close" class="size-5" />
               </button>
             </div>
 
@@ -144,7 +130,7 @@ const closeMobileMenu = () => {
                 v-for="item in navigationItems"
                 :key="item.href"
                 :to="item.href"
-                class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ease-in-out active:scale-[0.97]"
+                class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ease-in-out active:scale-[0.97] corner-squircle"
                 :class="
                   route.path === item.href
                     ? 'bg-primary text-white'
@@ -152,17 +138,17 @@ const closeMobileMenu = () => {
                 "
                 @click="closeMobileMenu"
               >
-                <Icon :name="item.icon" class="w-5 h-5" />
+                <Icon :name="item.icon" class="size-5" />
                 <span>{{ item.name }}</span>
               </NuxtLink>
 
               <!-- Logout -->
               <NuxtLink
                 to="/admin/login"
-                class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-text hover:bg-background transition-all duration-200 ease-in-out active:scale-[0.97] border-t border-border mt-2 pt-4"
+                class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-text hover:bg-background transition-all duration-200 ease-in-out active:scale-[0.97] border-t border-border mt-2 pt-4 corner-squircle"
                 @click="closeMobileMenu"
               >
-                <Icon name="material-symbols:logout" class="w-5 h-5" />
+                <Icon name="material-symbols:logout" class="size-5" />
                 <span>Logout</span>
               </NuxtLink>
             </nav>
@@ -176,12 +162,12 @@ const closeMobileMenu = () => {
 <style scoped>
 .mobile-menu-enter-active,
 .mobile-menu-leave-active {
-  transition: opacity 0.3s ease;
+  transition: opacity 0.2s ease-out;
 }
 
 .mobile-menu-enter-active > div,
 .mobile-menu-leave-active > div {
-  transition: transform 0.3s ease;
+  transition: transform 0.2s cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 .mobile-menu-enter-from,

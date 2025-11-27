@@ -58,7 +58,7 @@ function toggleDarkMode() {
       <svg
         v-if="isDark"
         key="moon"
-        class="w-5 h-5"
+        class="size-5"
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"
@@ -73,7 +73,7 @@ function toggleDarkMode() {
       <svg
         v-else
         key="sun"
-        class="w-5 h-5"
+        class="size-5"
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"

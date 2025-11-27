@@ -87,7 +87,7 @@ const handleLogin = () => {
             Sign In
             <Icon
               name="material-symbols:arrow-forward"
-              class="w-5 h-5 transition-transform group-hover:translate-x-1"
+              class="size-5 transition-transform group-hover:translate-x-1"
             />
           </button>
         </form>

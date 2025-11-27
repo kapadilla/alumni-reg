@@ -154,7 +154,7 @@ const handleSubmit = () => {
                   Next Step
                   <Icon
                     name="material-symbols:arrow-forward"
-                    class="w-4 h-4 md:w-5 md:h-5 transition-transform group-hover:translate-x-1"
+                    class="size-4 md:size-5 transition-transform group-hover:translate-x-1"
                   />
                 </button>
                 <button
@@ -165,7 +165,7 @@ const handleSubmit = () => {
                   Submit
                   <Icon
                     name="material-symbols:arrow-forward"
-                    class="w-4 h-4 md:w-5 md:h-5 transition-transform group-hover:translate-x-1"
+                    class="size-4 md:size-5 transition-transform group-hover:translate-x-1"
                   />
                 </button>
               </div>

@@ -6,7 +6,7 @@ defineProps<{
 
 <template>
   <svg
-    :class="size || 'w-5 h-5 lg:w-6 lg:h-6'"
+    :class="size || 'size-5 lg:size-6'"
     viewBox="0 0 24 24"
     fill="none"
     xmlns="http://www.w3.org/2000/svg"
