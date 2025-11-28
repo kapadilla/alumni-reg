@@ -1,15 +1,10 @@
 <script setup lang="ts">
-interface MembershipData {
-  membershipType: string;
-  paymentMethod: string;
-}
+import type { FormApi } from "@tanstack/vue-form";
+import { z } from "zod";
+import type { RegistrationFormData } from "~/utils/schemas";
 
-const props = defineProps<{
-  formData: MembershipData;
-}>();
-
-const emit = defineEmits<{
-  "update:formData": [data: MembershipData];
+defineProps<{
+  form: FormApi<RegistrationFormData, undefined>;
 }>();
 
 const membershipOptions = [
@@ -22,10 +17,6 @@ const paymentOptions = [
   { value: "bank", label: "Bank Transfer" },
   { value: "cash", label: "Cash" },
 ];
-
-const updateField = (field: keyof MembershipData, value: string) => {
-  emit("update:formData", { ...props.formData, [field]: value });
-};
 </script>
 
 <template>
@@ -36,25 +27,49 @@ const updateField = (field: keyof MembershipData, value: string) => {
     </div>
 
     <div class="space-y-4">
-      <FormSelect
-        id="membershipType"
-        label="Membership Type"
-        placeholder="Select membership type"
-        :model-value="formData.membershipType"
-        :options="membershipOptions"
-        required
-        @update:model-value="(val) => updateField('membershipType', val)"
-      />
+      <!-- Membership Type -->
+      <form.Field
+        name="membership.membershipType"
+        :validators="{
+          onBlur: z.string().min(1, 'Please select a membership type'),
+        }"
+      >
+        <template #default="{ field }">
+          <FormSelect
+            :id="field.name"
+            label="Membership Type"
+            placeholder="Select membership type"
+            :model-value="field.state.value"
+            :options="membershipOptions"
+            :error="field.state.meta.errors?.[0]"
+            required
+            @update:model-value="field.handleChange"
+            @blur="field.handleBlur"
+          />
+        </template>
+      </form.Field>
 
-      <FormSelect
-        id="paymentMethod"
-        label="Payment Method"
-        placeholder="Select payment method"
-        :model-value="formData.paymentMethod"
-        :options="paymentOptions"
-        required
-        @update:model-value="(val) => updateField('paymentMethod', val)"
-      />
+      <!-- Payment Method -->
+      <form.Field
+        name="membership.paymentMethod"
+        :validators="{
+          onBlur: z.string().min(1, 'Please select a payment method'),
+        }"
+      >
+        <template #default="{ field }">
+          <FormSelect
+            :id="field.name"
+            label="Payment Method"
+            placeholder="Select payment method"
+            :model-value="field.state.value"
+            :options="paymentOptions"
+            :error="field.state.meta.errors?.[0]"
+            required
+            @update:model-value="field.handleChange"
+            @blur="field.handleBlur"
+          />
+        </template>
+      </form.Field>
     </div>
   </div>
 </template>

@@ -1,25 +1,10 @@
 <script setup lang="ts">
-interface PersonalDetailsData {
-  title: string;
-  firstName: string;
-  lastName: string;
-  suffix: string;
-  maidenName: string;
-  dateOfBirth: string;
-  email: string;
-  mobileNumber: string;
-  currentAddress: string;
-  province: string;
-  city: string;
-  barangay: string;
-}
+import type { FormApi } from "@tanstack/vue-form";
+import { z } from "zod";
+import type { RegistrationFormData } from "~/utils/schemas";
 
-const props = defineProps<{
-  formData: PersonalDetailsData;
-}>();
-
-const emit = defineEmits<{
-  "update:formData": [data: PersonalDetailsData];
+defineProps<{
+  form: FormApi<RegistrationFormData, undefined>;
 }>();
 
 const titleOptions = [
@@ -43,16 +28,12 @@ const barangayOptions = [
   { value: "lahug", label: "Barangay Lahug" },
   { value: "apas", label: "Barangay Apas" },
 ];
-
-const updateField = (field: keyof PersonalDetailsData, value: string) => {
-  emit("update:formData", { ...props.formData, [field]: value });
-};
 </script>
 
 <template>
   <div class="space-y-6">
     <div>
-      <h2 class="text-2xl font-bold text-text mb-2">Personal Information</h2>
+      <h2 class="text-2xl font-bold text-text mb-2">Personal Details</h2>
       <p class="text-subtle">
         Please provide your legal identity details as they appear in official
         records.
@@ -60,57 +41,127 @@ const updateField = (field: keyof PersonalDetailsData, value: string) => {
     </div>
 
     <div class="grid grid-cols-4 gap-4">
-      <FormSelect
-        id="title"
-        label="Title"
-        placeholder="Select"
-        :model-value="formData.title"
-        :options="titleOptions"
-        required
-        @update:model-value="(val) => updateField('title', val)"
-      />
-      <FormInput
-        id="firstName"
-        label="First Name"
-        placeholder="Juan"
-        :model-value="formData.firstName"
-        required
-        @update:model-value="(val) => updateField('firstName', val)"
-      />
-      <FormInput
-        id="lastName"
-        label="Last Name"
-        placeholder="Dela Cruz"
-        :model-value="formData.lastName"
-        required
-        @update:model-value="(val) => updateField('lastName', val)"
-      />
-      <FormInput
-        id="suffix"
-        label="Suffix"
-        placeholder="Jr."
-        :model-value="formData.suffix"
-        @update:model-value="(val) => updateField('suffix', val)"
-      />
+      <!-- Title -->
+      <form.Field
+        name="personalDetails.title"
+        :validators="{
+          onBlur: z.string().min(1, 'Title is required'),
+        }"
+      >
+        <template #default="{ field }">
+          <FormSelect
+            :id="field.name"
+            label="Title"
+            placeholder="Select"
+            :model-value="field.state.value"
+            :options="titleOptions"
+            :error="field.state.meta.errors?.[0]"
+            required
+            @update:model-value="field.handleChange"
+            @blur="field.handleBlur"
+          />
+        </template>
+      </form.Field>
+
+      <!-- First Name -->
+      <form.Field
+        name="personalDetails.firstName"
+        :validators="{
+          onBlur: z
+            .string()
+            .min(1, 'First name is required')
+            .min(2, 'First name must be at least 2 characters'),
+        }"
+      >
+        <template #default="{ field }">
+          <FormInput
+            :id="field.name"
+            label="First Name"
+            placeholder="Juan"
+            :model-value="field.state.value"
+            :error="field.state.meta.errors?.[0]"
+            required
+            @update:model-value="field.handleChange"
+            @blur="field.handleBlur"
+          />
+        </template>
+      </form.Field>
+
+      <!-- Last Name -->
+      <form.Field
+        name="personalDetails.lastName"
+        :validators="{
+          onBlur: z
+            .string()
+            .min(1, 'Last name is required')
+            .min(2, 'Last name must be at least 2 characters'),
+        }"
+      >
+        <template #default="{ field }">
+          <FormInput
+            :id="field.name"
+            label="Last Name"
+            placeholder="Dela Cruz"
+            :model-value="field.state.value"
+            :error="field.state.meta.errors?.[0]"
+            required
+            @update:model-value="field.handleChange"
+            @blur="field.handleBlur"
+          />
+        </template>
+      </form.Field>
+
+      <!-- Suffix -->
+      <form.Field name="personalDetails.suffix">
+        <template #default="{ field }">
+          <FormInput
+            :id="field.name"
+            label="Suffix"
+            placeholder="Jr."
+            :model-value="field.state.value"
+            @update:model-value="field.handleChange"
+            @blur="field.handleBlur"
+          />
+        </template>
+      </form.Field>
     </div>
 
     <div class="grid grid-cols-2 gap-4">
-      <FormInput
-        id="maidenName"
-        label="Maiden Name"
-        placeholder="(if applicable)"
-        hint="For verifying school records"
-        :model-value="formData.maidenName"
-        @update:model-value="(val) => updateField('maidenName', val)"
-      />
-      <FormInput
-        id="dateOfBirth"
-        label="Date of Birth"
-        type="date"
-        :model-value="formData.dateOfBirth"
-        required
-        @update:model-value="(val) => updateField('dateOfBirth', val)"
-      />
+      <!-- Maiden Name -->
+      <form.Field name="personalDetails.maidenName">
+        <template #default="{ field }">
+          <FormInput
+            :id="field.name"
+            label="Maiden Name"
+            placeholder="(if applicable)"
+            hint="For verifying school records"
+            :model-value="field.state.value"
+            @update:model-value="field.handleChange"
+            @blur="field.handleBlur"
+          />
+        </template>
+      </form.Field>
+
+      <!-- Date of Birth -->
+      <form.Field
+        name="personalDetails.dateOfBirth"
+        :validators="{
+          onBlur: z.string().min(1, 'Date of birth is required'),
+        }"
+      >
+        <template #default="{ field }">
+          <FormInput
+            :id="field.name"
+            label="Date of Birth"
+            type="date"
+            :model-value="field.state.value"
+            :error="field.state.meta.errors?.[0]"
+            required
+            @update:model-value="field.handleChange"
+            @blur="field.handleBlur"
+          />
+        </template>
+      </form.Field>
     </div>
 
     <div class="pt-4">
@@ -121,61 +172,148 @@ const updateField = (field: keyof PersonalDetailsData, value: string) => {
 
       <div class="space-y-4">
         <div class="grid grid-cols-2 gap-4">
-          <FormInput
-            id="email"
-            label="Email Address"
-            type="email"
-            placeholder="juandelacruz@gmail.com"
-            :model-value="formData.email"
-            hint="* Please avoid using your up.edu.ph email."
-            required
-            @update:model-value="(val) => updateField('email', val)"
-          />
-          <FormInput
-            id="mobileNumber"
-            label="Mobile Number"
-            type="tel"
-            placeholder="0917 123 4567"
-            :model-value="formData.mobileNumber"
-            required
-            @update:model-value="(val) => updateField('mobileNumber', val)"
-          />
+          <!-- Email -->
+          <form.Field
+            name="personalDetails.email"
+            :validators="{
+              onBlur: z
+                .string()
+                .min(1, 'Email is required')
+                .email('Please enter a valid email address')
+                .refine((email) => !email.endsWith('@up.edu.ph'), {
+                  message: 'Please avoid using your up.edu.ph email',
+                }),
+            }"
+          >
+            <template #default="{ field }">
+              <FormInput
+                :id="field.name"
+                label="Email Address"
+                type="email"
+                placeholder="juandelacruz@gmail.com"
+                :model-value="field.state.value"
+                :error="field.state.meta.errors?.[0]"
+                hint="* Please avoid using your up.edu.ph email."
+                required
+                @update:model-value="field.handleChange"
+                @blur="field.handleBlur"
+              />
+            </template>
+          </form.Field>
+
+          <!-- Mobile Number -->
+          <form.Field
+            name="personalDetails.mobileNumber"
+            :validators="{
+              onBlur: z
+                .string()
+                .min(1, 'Mobile number is required')
+                .regex(
+                  /^(09|\+639)\d{9}$/,
+                  'Please enter a valid Philippine mobile number'
+                ),
+            }"
+          >
+            <template #default="{ field }">
+              <FormInput
+                :id="field.name"
+                label="Mobile Number"
+                type="tel"
+                placeholder="09171234567"
+                :model-value="field.state.value"
+                :error="field.state.meta.errors?.[0]"
+                required
+                @update:model-value="field.handleChange"
+                @blur="field.handleBlur"
+              />
+            </template>
+          </form.Field>
         </div>
 
-        <FormInput
-          id="currentAddress"
-          label="Current Address"
-          placeholder="Unit, Street, Subdivision"
-          :model-value="formData.currentAddress"
-          required
-          @update:model-value="(val) => updateField('currentAddress', val)"
-        />
+        <!-- Current Address -->
+        <form.Field
+          name="personalDetails.currentAddress"
+          :validators="{
+            onBlur: z.string().min(1, 'Current address is required'),
+          }"
+        >
+          <template #default="{ field }">
+            <FormInput
+              :id="field.name"
+              label="Current Address"
+              placeholder="Unit, Street, Subdivision"
+              :model-value="field.state.value"
+              :error="field.state.meta.errors?.[0]"
+              required
+              @update:model-value="field.handleChange"
+              @blur="field.handleBlur"
+            />
+          </template>
+        </form.Field>
 
         <div class="grid grid-cols-3 gap-4">
-          <FormSelect
-            id="province"
-            placeholder="Select Province"
-            :model-value="formData.province"
-            :options="provinceOptions"
-            required
-            @update:model-value="(val) => updateField('province', val)"
-          />
-          <FormSelect
-            id="city"
-            placeholder="Select City"
-            :model-value="formData.city"
-            :options="cityOptions"
-            required
-            @update:model-value="(val) => updateField('city', val)"
-          />
-          <FormSelect
-            id="barangay"
-            placeholder="Select Barangay"
-            :model-value="formData.barangay"
-            :options="barangayOptions"
-            required
-            @update:model-value="(val) => updateField('barangay', val)"
-          />
+          <!-- Province -->
+          <form.Field
+            name="personalDetails.province"
+            :validators="{
+              onBlur: z.string().min(1, 'Province is required'),
+            }"
+          >
+            <template #default="{ field }">
+              <FormSelect
+                :id="field.name"
+                placeholder="Select Province"
+                :model-value="field.state.value"
+                :options="provinceOptions"
+                :error="field.state.meta.errors?.[0]"
+                required
+                @update:model-value="field.handleChange"
+                @blur="field.handleBlur"
+              />
+            </template>
+          </form.Field>
+
+          <!-- City -->
+          <form.Field
+            name="personalDetails.city"
+            :validators="{
+              onBlur: z.string().min(1, 'City is required'),
+            }"
+          >
+            <template #default="{ field }">
+              <FormSelect
+                :id="field.name"
+                placeholder="Select City"
+                :model-value="field.state.value"
+                :options="cityOptions"
+                :error="field.state.meta.errors?.[0]"
+                required
+                @update:model-value="field.handleChange"
+                @blur="field.handleBlur"
+              />
+            </template>
+          </form.Field>
+
+          <!-- Barangay -->
+          <form.Field
+            name="personalDetails.barangay"
+            :validators="{
+              onBlur: z.string().min(1, 'Barangay is required'),
+            }"
+          >
+            <template #default="{ field }">
+              <FormSelect
+                :id="field.name"
+                placeholder="Select Barangay"
+                :model-value="field.state.value"
+                :options="barangayOptions"
+                :error="field.state.meta.errors?.[0]"
+                required
+                @update:model-value="field.handleChange"
+                @blur="field.handleBlur"
+              />
+            </template>
+          </form.Field>
         </div>
       </div>
     </div>

@@ -1,21 +1,11 @@
 <script setup lang="ts">
-interface AcademicStatusData {
-  degreeProgram: string;
-  yearGraduated: string;
-  studentNumber: string;
-}
+import type { FormApi } from "@tanstack/vue-form";
+import { z } from "zod";
+import type { RegistrationFormData } from "~/utils/schemas";
 
-const props = defineProps<{
-  formData: AcademicStatusData;
+defineProps<{
+  form: FormApi<RegistrationFormData, undefined>;
 }>();
-
-const emit = defineEmits<{
-  "update:formData": [data: AcademicStatusData];
-}>();
-
-const updateField = (field: keyof AcademicStatusData, value: string) => {
-  emit("update:formData", { ...props.formData, [field]: value });
-};
 </script>
 
 <template>
@@ -28,32 +18,66 @@ const updateField = (field: keyof AcademicStatusData, value: string) => {
     </div>
 
     <div class="space-y-4">
-      <FormInput
-        id="degreeProgram"
-        label="Degree Program"
-        placeholder="e.g., BS Computer Science"
-        :model-value="formData.degreeProgram"
-        required
-        @update:model-value="(val) => updateField('degreeProgram', val)"
-      />
+      <!-- Degree Program -->
+      <form.Field
+        name="academicStatus.degreeProgram"
+        :validators="{
+          onBlur: z.string().min(1, 'Degree program is required'),
+        }"
+      >
+        <template #default="{ field }">
+          <FormInput
+            :id="field.name"
+            label="Degree Program"
+            placeholder="e.g., BS Computer Science"
+            :model-value="field.state.value"
+            :error="field.state.meta.errors?.[0]"
+            required
+            @update:model-value="field.handleChange"
+            @blur="field.handleBlur"
+          />
+        </template>
+      </form.Field>
 
       <div class="grid grid-cols-2 gap-4">
-        <FormInput
-          id="yearGraduated"
-          label="Year Graduated"
-          type="number"
-          placeholder="2020"
-          :model-value="formData.yearGraduated"
-          required
-          @update:model-value="(val) => updateField('yearGraduated', val)"
-        />
-        <FormInput
-          id="studentNumber"
-          label="Student Number"
-          placeholder="2016-12345 (optional)"
-          :model-value="formData.studentNumber"
-          @update:model-value="(val) => updateField('studentNumber', val)"
-        />
+        <!-- Year Graduated -->
+        <form.Field
+          name="academicStatus.yearGraduated"
+          :validators="{
+            onBlur: z
+              .string()
+              .min(1, 'Year graduated is required')
+              .regex(/^\d{4}$/, 'Please enter a valid year (e.g., 2020)'),
+          }"
+        >
+          <template #default="{ field }">
+            <FormInput
+              :id="field.name"
+              label="Year Graduated"
+              type="text"
+              placeholder="2020"
+              :model-value="field.state.value"
+              :error="field.state.meta.errors?.[0]"
+              required
+              @update:model-value="field.handleChange"
+              @blur="field.handleBlur"
+            />
+          </template>
+        </form.Field>
+
+        <!-- Student Number -->
+        <form.Field name="academicStatus.studentNumber">
+          <template #default="{ field }">
+            <FormInput
+              :id="field.name"
+              label="Student Number"
+              placeholder="2016-12345 (optional)"
+              :model-value="field.state.value"
+              @update:model-value="field.handleChange"
+              @blur="field.handleBlur"
+            />
+          </template>
+        </form.Field>
       </div>
     </div>
   </div>
