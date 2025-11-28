@@ -55,7 +55,7 @@ html:not(.dark) {
 }
 
 @utility corner-smooth {
-  corner-shape: superellipse(1.2);
+  corner-shape: superellipse(1.2) !important;
 }
 
 @utility corner-squircle {
