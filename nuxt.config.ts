@@ -1,6 +1,22 @@
-import { defineNuxtConfig } from 'nuxt/config'
+import tailwindcss from "@tailwindcss/vite";
 
+// https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
+  compatibilityDate: "2025-07-15",
   devtools: { enabled: true },
-  compatibilityDate: '2024-10-25'
-})
+  modules: ["@nuxt/fonts", "@nuxt/eslint", "@nuxt/icon", "@nuxt/image"],
+  eslint: {
+    config: {
+      stylistic: {
+        semi: true,
+        quotes: "double",
+        commaDangle: "always-multiline",
+        indent: "tab",
+      },
+    },
+  },
+  vite: {
+    plugins: [tailwindcss()],
+  },
+  css: ["./app/assets/css/main.css"],
+});
