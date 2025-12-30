@@ -4,6 +4,7 @@ const formData = ref({
   title: "",
   firstName: "",
   lastName: "",
+  middleName: "",
   suffix: "",
   maidenName: "",
   dateOfBirth: "",

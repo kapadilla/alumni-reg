@@ -6,6 +6,7 @@ interface FormData {
   title: string;
   firstName: string;
   lastName: string;
+  middleName: string;
   suffix: string;
   maidenName: string;
   dateOfBirth: string;
@@ -183,7 +184,7 @@ const updateField = (field: keyof FormData, value: string | boolean) => {
 </script>
 
 <template>
-  <div class="space-y-8">
+  <div class="space-y-8 p-1">
     <!-- Personal Information Section -->
     <div class="space-y-6">
       <div>
@@ -194,16 +195,9 @@ const updateField = (field: keyof FormData, value: string | boolean) => {
         </p>
       </div>
 
-      <div class="grid grid-cols-4 gap-4">
-        <FormSelect
-          id="title"
-          label="Title"
-          placeholder="Select"
-          :model-value="formData.title"
-          :options="titleOptions"
-          required
-          @update:model-value="(val) => updateField('title', val)"
-        />
+      <div
+        class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4"
+      >
         <FormInput
           id="firstName"
           label="First Name"
@@ -221,6 +215,13 @@ const updateField = (field: keyof FormData, value: string | boolean) => {
           @update:model-value="(val) => updateField('lastName', val)"
         />
         <FormInput
+          id="middleName"
+          label="Middle Name"
+          placeholder="Murillo"
+          :model-value="formData.middleName"
+          @update:model-value="(val) => updateField('middleName', val)"
+        />
+        <FormInput
           id="suffix"
           label="Suffix"
           placeholder="Jr."
@@ -229,7 +230,7 @@ const updateField = (field: keyof FormData, value: string | boolean) => {
         />
       </div>
 
-      <div class="grid grid-cols-2 gap-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <FormInput
           id="maidenName"
           label="Maiden Name"
@@ -292,7 +293,7 @@ const updateField = (field: keyof FormData, value: string | boolean) => {
             @update:model-value="(val) => updateField('currentAddress', val)"
           />
 
-          <div class="grid grid-cols-3 gap-4">
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <FormSelect
               id="province"
               placeholder="Select Province"
