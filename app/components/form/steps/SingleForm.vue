@@ -454,7 +454,7 @@ const updateField = (field: keyof FormData, value: string | boolean) => {
 
       <div class="space-y-4">
         <div
-          class="bg-gray-50 border border-border rounded-lg p-4 max-h-60 overflow-y-auto"
+          class="bg-surface border border-border rounded-lg p-4 max-h-60 overflow-y-auto"
         >
           <h3 class="font-semibold text-text mb-2">Privacy Policy</h3>
           <p class="text-sm text-subtle mb-3">
@@ -490,7 +490,7 @@ const updateField = (field: keyof FormData, value: string | boolean) => {
             type="checkbox"
             :checked="formData.dataPrivacyConsent"
             @change="(e) => updateField('dataPrivacyConsent', (e.target as HTMLInputElement).checked)"
-            class="mt-1 w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
+            class="mt-1 w-4 h-4 text-primary border-border rounded focus:ring-primary"
             required
           />
           <span class="text-sm text-text">
