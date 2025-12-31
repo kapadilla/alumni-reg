@@ -10,19 +10,24 @@ const navigationItems = [
     href: "/admin/dashboard",
   },
   {
-    name: "Applicants",
-    icon: "material-symbols:pending-actions",
-    href: "/admin/applicants",
+    name: "Alumni Verification",
+    icon: "material-symbols:person-check",
+    href: "/admin/alumni-verification",
+  },
+  {
+    name: "Payment Verification",
+    icon: "material-symbols:payments",
+    href: "/admin/payment-verification",
+  },
+  {
+    name: "Rejected",
+    icon: "material-symbols:cancel",
+    href: "/admin/rejected",
   },
   {
     name: "Members",
     icon: "material-symbols:verified",
     href: "/admin/members",
-  },
-  {
-    name: "Alumni",
-    icon: "material-symbols:group",
-    href: "/admin/alumni",
   },
 ];
 

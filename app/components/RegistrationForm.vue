@@ -46,7 +46,6 @@ const form = useForm({
       industry: "",
     } as ProfessionalData,
     membership: {
-      membershipType: "",
       paymentMethod: "",
     } as MembershipData,
   },
@@ -465,9 +464,9 @@ const previousStep = () => {
             Membership
           </h3>
           <div class="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-            <div class="text-subtle">Membership Type</div>
+            <div class="text-subtle">Membership</div>
             <div class="text-text font-medium">
-              {{ formValues.membership.membershipType || "—" }}
+              Lifetime - ₱5,000
             </div>
             <div class="text-subtle">Payment Method</div>
             <div class="text-text font-medium">

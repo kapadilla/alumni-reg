@@ -45,9 +45,8 @@ export const professionalSchema = z.object({
   industry: z.string().optional(),
 });
 
-// Membership Schema
+// Membership Schema (all members are lifetime, only payment method needed)
 export const membershipSchema = z.object({
-  membershipType: z.string().min(1, "Please select a membership type"),
   paymentMethod: z.string().min(1, "Please select a payment method"),
 });
 

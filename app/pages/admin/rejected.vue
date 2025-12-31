@@ -3,34 +3,31 @@ definePageMeta({
   layout: "admin",
 });
 
-// Sample applicants data
-const applicants = ref([
+// Sample rejected applicants data
+const rejectedApplicants = ref([
   {
     id: 1,
-    name: "Juan Dela Cruz",
-    email: "juan.delacruz@example.com",
-    degree: "BS Computer Science",
-    yearGraduated: "2020",
-    dateApplied: "2025-11-25",
-    status: "Pending",
+    name: "Roberto Cruz",
+    email: "roberto.cruz@example.com",
+    rejectedAt: "2025-11-24",
+    rejectionStage: "Alumni Verification",
+    reason: "Name not found in alumni records",
   },
   {
     id: 2,
-    name: "Maria Santos",
-    email: "maria.santos@example.com",
-    degree: "BS Biology",
-    yearGraduated: "2019",
-    dateApplied: "2025-11-24",
-    status: "Pending",
+    name: "Linda Gomez",
+    email: "linda.gomez@example.com",
+    rejectedAt: "2025-11-23",
+    rejectionStage: "Payment Verification",
+    reason: "Payment not received after 30 days",
   },
   {
     id: 3,
-    name: "Pedro Reyes",
-    email: "pedro.reyes@example.com",
-    degree: "BS Engineering",
-    yearGraduated: "2021",
-    dateApplied: "2025-11-23",
-    status: "Pending",
+    name: "Marco Tan",
+    email: "marco.tan@example.com",
+    rejectedAt: "2025-11-20",
+    rejectionStage: "Alumni Verification",
+    reason: "Graduation year does not match records",
   },
 ]);
 </script>
@@ -40,10 +37,10 @@ const applicants = ref([
     <!-- Header -->
     <div class="mb-6">
       <h1 class="text-2xl md:text-3xl font-bold text-text mb-2">
-        Membership Applicants
+        Rejected Applicants
       </h1>
       <p class="text-subtle text-sm md:text-base">
-        Review and approve membership applications
+        View applicants who were rejected during the verification process
       </p>
     </div>
 
@@ -58,11 +55,11 @@ const applicants = ref([
         <h2
           class="text-lg font-semibold text-text flex items-center gap-3 leading-none"
         >
-          Pending Applications
+          Rejected Applications
           <span
-            class="text-xs font-semibold size-6 rounded-lg bg-secondary text-white flex items-center justify-center -translate-y-px"
+            class="text-xs font-semibold size-6 rounded-lg bg-red-500/10 text-red-600 dark:text-red-400 flex items-center justify-center -translate-y-px"
           >
-            {{ applicants.length }}
+            {{ rejectedApplicants.length }}
           </span>
         </h2>
         <button
@@ -72,9 +69,22 @@ const applicants = ref([
         </button>
       </div>
 
+      <!-- Empty State -->
+      <div
+        v-if="rejectedApplicants.length === 0"
+        class="p-12 text-center"
+      >
+        <Icon
+          name="material-symbols:thumb-up"
+          class="size-12 text-secondary mx-auto mb-4"
+        />
+        <p class="text-text font-medium mb-1">No rejections</p>
+        <p class="text-subtle text-sm">All applicants have been verified successfully</p>
+      </div>
+
       <!-- Table with horizontal scroll -->
-      <div class="overflow-x-auto">
-        <table class="w-full min-w-[800px]">
+      <div v-else class="overflow-x-auto">
+        <table class="w-full min-w-[900px]">
           <thead class="bg-background">
             <tr>
               <th
@@ -95,17 +105,17 @@ const applicants = ref([
               <th
                 class="px-4 md:px-6 py-3 text-left text-xs font-medium text-subtle uppercase tracking-wider"
               >
-                Degree Program
+                Rejected At
               </th>
               <th
                 class="px-4 md:px-6 py-3 text-left text-xs font-medium text-subtle uppercase tracking-wider"
               >
-                Year Graduated
+                Rejection Stage
               </th>
               <th
                 class="px-4 md:px-6 py-3 text-left text-xs font-medium text-subtle uppercase tracking-wider"
               >
-                Date Applied
+                Reason
               </th>
               <th
                 class="px-4 md:px-6 py-3 text-left text-xs font-medium text-subtle uppercase tracking-wider"
@@ -116,7 +126,7 @@ const applicants = ref([
           </thead>
           <tbody class="divide-y divide-border">
             <tr
-              v-for="applicant in applicants"
+              v-for="applicant in rejectedApplicants"
               :key="applicant.id"
               class="hover:bg-background transition-colors"
             >
@@ -133,32 +143,36 @@ const applicants = ref([
               >
                 {{ applicant.email }}
               </td>
-              <td class="px-4 md:px-6 py-4 whitespace-nowrap text-sm text-text">
-                {{ applicant.degree }}
-              </td>
-              <td class="px-4 md:px-6 py-4 whitespace-nowrap text-sm text-text">
-                {{ applicant.yearGraduated }}
-              </td>
               <td
                 class="px-4 md:px-6 py-4 whitespace-nowrap text-sm text-subtle"
               >
-                {{ applicant.dateApplied }}
+                {{ applicant.rejectedAt }}
+              </td>
+              <td class="px-4 md:px-6 py-4 whitespace-nowrap">
+                <span
+                  class="px-2 py-1 text-xs font-medium rounded-full"
+                  :class="
+                    applicant.rejectionStage === 'Alumni Verification'
+                      ? 'bg-accent bg-opacity-10 text-accent'
+                      : 'bg-primary bg-opacity-10 text-primary'
+                  "
+                >
+                  {{ applicant.rejectionStage }}
+                </span>
+              </td>
+              <td class="px-4 md:px-6 py-4 text-sm text-text max-w-xs truncate" :title="applicant.reason">
+                {{ applicant.reason }}
               </td>
               <td
                 class="px-4 md:px-6 py-4 whitespace-nowrap text-sm font-medium"
               >
-                <div class="flex gap-2">
-                  <button
-                    class="px-3 py-1 text-xs rounded bg-secondary text-white hover:bg-opacity-90 transition-colors"
-                  >
-                    Approve
-                  </button>
-                  <button
-                    class="px-3 py-1 text-xs rounded border border-border text-text hover:bg-background transition-colors"
-                  >
-                    View
-                  </button>
-                </div>
+                <button
+                  class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-border text-subtle hover:bg-background hover:text-text transition-all duration-200 active:scale-95"
+                  title="View Details"
+                >
+                  <Icon name="material-symbols:visibility" class="size-3.5" />
+                  View Details
+                </button>
               </td>
             </tr>
           </tbody>

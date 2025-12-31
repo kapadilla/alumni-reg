@@ -3,49 +3,43 @@ definePageMeta({
   layout: "admin",
 });
 
-// Sample alumni data
-const alumni = ref([
+// Sample pending payment verification data (already verified as alumni)
+const pendingPayments = ref([
   {
     id: 1,
     name: "Elena Rodriguez",
     email: "elena.rodriguez@example.com",
-    degree: "BS Mathematics",
-    yearGraduated: "2015",
-    currentEmployer: "Tech Corp",
-    industry: "Technology",
-    isMember: true,
+    paymentMethod: "GCash",
+    amount: "₱5,000",
+    alumniVerifiedDate: "2025-11-20",
   },
   {
     id: 2,
     name: "Miguel Torres",
     email: "miguel.torres@example.com",
-    degree: "BS Chemistry",
-    yearGraduated: "2016",
-    currentEmployer: "PharmaCo",
-    industry: "Healthcare",
-    isMember: false,
+    paymentMethod: "Bank Transfer",
+    amount: "₱5,000",
+    alumniVerifiedDate: "2025-11-19",
   },
   {
     id: 3,
     name: "Sofia Reyes",
     email: "sofia.reyes@example.com",
-    degree: "BS Economics",
-    yearGraduated: "2014",
-    currentEmployer: "Bank Inc",
-    industry: "Finance",
-    isMember: true,
-  },
-  {
-    id: 4,
-    name: "Diego Santos",
-    email: "diego.santos@example.com",
-    degree: "BS Architecture",
-    yearGraduated: "2017",
-    currentEmployer: "Design Studio",
-    industry: "Architecture",
-    isMember: false,
+    paymentMethod: "Cash",
+    amount: "₱5,000",
+    alumniVerifiedDate: "2025-11-18",
   },
 ]);
+
+const confirmPayment = (id: number) => {
+  console.log("Confirm payment:", id);
+  // TODO: API call to confirm payment and approve membership
+};
+
+const rejectPayment = (id: number) => {
+  console.log("Reject payment:", id);
+  // TODO: API call to reject payment
+};
 </script>
 
 <template>
@@ -53,10 +47,10 @@ const alumni = ref([
     <!-- Header -->
     <div class="mb-6">
       <h1 class="text-2xl md:text-3xl font-bold text-text mb-2">
-        Alumni Directory
+        Payment Verification
       </h1>
       <p class="text-subtle text-sm md:text-base">
-        Complete list of UP Cebu alumni
+        Verify membership payments for alumni-verified applicants
       </p>
     </div>
 
@@ -71,11 +65,11 @@ const alumni = ref([
         <h2
           class="text-lg font-semibold text-text flex items-center gap-3 leading-none"
         >
-          Total Alumni
+          Pending Payment Verification
           <span
-            class="text-xs font-semibold size-6 rounded-lg bg-secondary text-white flex items-center justify-center -translate-y-px"
+            class="text-xs font-semibold size-6 rounded-lg bg-secondary/10 text-secondary flex items-center justify-center -translate-y-px"
           >
-            {{ alumni.length }}
+            {{ pendingPayments.length }}
           </span>
         </h2>
         <button
@@ -85,8 +79,21 @@ const alumni = ref([
         </button>
       </div>
 
+      <!-- Empty State -->
+      <div
+        v-if="pendingPayments.length === 0"
+        class="p-12 text-center"
+      >
+        <Icon
+          name="material-symbols:check-circle"
+          class="size-12 text-secondary mx-auto mb-4"
+        />
+        <p class="text-text font-medium mb-1">All caught up!</p>
+        <p class="text-subtle text-sm">No pending payment verifications</p>
+      </div>
+
       <!-- Table with horizontal scroll -->
-      <div class="overflow-x-auto">
+      <div v-else class="overflow-x-auto">
         <table class="w-full min-w-[900px]">
           <thead class="bg-background">
             <tr>
@@ -108,27 +115,17 @@ const alumni = ref([
               <th
                 class="px-4 md:px-6 py-3 text-left text-xs font-medium text-subtle uppercase tracking-wider"
               >
-                Degree Program
+                Payment Method
               </th>
               <th
                 class="px-4 md:px-6 py-3 text-left text-xs font-medium text-subtle uppercase tracking-wider"
               >
-                Year Graduated
+                Amount
               </th>
               <th
                 class="px-4 md:px-6 py-3 text-left text-xs font-medium text-subtle uppercase tracking-wider"
               >
-                Current Employer
-              </th>
-              <th
-                class="px-4 md:px-6 py-3 text-left text-xs font-medium text-subtle uppercase tracking-wider"
-              >
-                Industry
-              </th>
-              <th
-                class="px-4 md:px-6 py-3 text-left text-xs font-medium text-subtle uppercase tracking-wider"
-              >
-                Member Status
+                Alumni Verified
               </th>
               <th
                 class="px-4 md:px-6 py-3 text-left text-xs font-medium text-subtle uppercase tracking-wider"
@@ -139,57 +136,62 @@ const alumni = ref([
           </thead>
           <tbody class="divide-y divide-border">
             <tr
-              v-for="alumnus in alumni"
-              :key="alumnus.id"
+              v-for="payment in pendingPayments"
+              :key="payment.id"
               class="hover:bg-background transition-colors"
             >
               <td class="px-4 md:px-6 py-4 whitespace-nowrap text-sm text-text">
-                {{ alumnus.id }}
+                {{ payment.id }}
               </td>
               <td
                 class="px-4 md:px-6 py-4 whitespace-nowrap text-sm font-medium text-text"
               >
-                {{ alumnus.name }}
+                {{ payment.name }}
               </td>
               <td
                 class="px-4 md:px-6 py-4 whitespace-nowrap text-sm text-subtle"
               >
-                {{ alumnus.email }}
+                {{ payment.email }}
               </td>
               <td class="px-4 md:px-6 py-4 whitespace-nowrap text-sm text-text">
-                {{ alumnus.degree }}
+                {{ payment.paymentMethod }}
               </td>
-              <td class="px-4 md:px-6 py-4 whitespace-nowrap text-sm text-text">
-                {{ alumnus.yearGraduated }}
-              </td>
-              <td class="px-4 md:px-6 py-4 whitespace-nowrap text-sm text-text">
-                {{ alumnus.currentEmployer }}
+              <td class="px-4 md:px-6 py-4 whitespace-nowrap text-sm text-text font-medium">
+                {{ payment.amount }}
               </td>
               <td
                 class="px-4 md:px-6 py-4 whitespace-nowrap text-sm text-subtle"
               >
-                {{ alumnus.industry }}
-              </td>
-              <td class="px-4 md:px-6 py-4 whitespace-nowrap">
-                <span
-                  class="px-2 py-1 text-xs font-medium rounded-full"
-                  :class="
-                    alumnus.isMember
-                      ? 'bg-secondary bg-opacity-10 text-secondary'
-                      : 'bg-border text-subtle'
-                  "
-                >
-                  {{ alumnus.isMember ? "Member" : "Non-member" }}
-                </span>
+                {{ payment.alumniVerifiedDate }}
               </td>
               <td
                 class="px-4 md:px-6 py-4 whitespace-nowrap text-sm font-medium"
               >
-                <button
-                  class="text-primary hover:text-opacity-80 transition-colors"
-                >
-                  View Profile
-                </button>
+                <div class="flex items-center gap-2">
+                  <button
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-secondary/10 text-secondary hover:bg-secondary/20 transition-all duration-200 active:scale-95"
+                    @click="confirmPayment(payment.id)"
+                    title="Confirm Payment"
+                  >
+                    <Icon name="material-symbols:check-circle" class="size-3.5" />
+                    Confirm
+                  </button>
+                  <button
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-500/20 transition-all duration-200 active:scale-95"
+                    @click="rejectPayment(payment.id)"
+                    title="Reject Payment"
+                  >
+                    <Icon name="material-symbols:cancel" class="size-3.5" />
+                    Reject
+                  </button>
+                  <button
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-border text-subtle hover:bg-background hover:text-text transition-all duration-200 active:scale-95"
+                    title="View Details"
+                  >
+                    <Icon name="material-symbols:visibility" class="size-3.5" />
+                    View
+                  </button>
+                </div>
               </td>
             </tr>
           </tbody>

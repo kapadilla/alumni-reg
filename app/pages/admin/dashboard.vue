@@ -5,9 +5,9 @@ definePageMeta({
 
 // Sample data - replace with actual API calls later
 const stats = ref([
-  { label: "Membership Applicants", count: 24, href: "/admin/applicants" },
+  { label: "Pending Alumni Verification", count: 12, href: "/admin/alumni-verification" },
+  { label: "Pending Payment Verification", count: 8, href: "/admin/payment-verification" },
   { label: "Approved Members", count: 156, href: "/admin/members" },
-  { label: "Total Alumni", count: 432, href: "/admin/alumni" },
 ]);
 
 const recentActivity = ref([
@@ -16,31 +16,31 @@ const recentActivity = ref([
     name: "Juan Dela Cruz",
     email: "juan.delacruz@example.com",
     status: "Pending",
-    type: "Application",
+    type: "Alumni Verification",
     date: "2025-11-25",
   },
   {
     id: 2,
     name: "Maria Santos",
     email: "maria.santos@example.com",
-    status: "Approved",
-    type: "Membership",
+    status: "Verified",
+    type: "Payment Verification",
     date: "2025-11-24",
   },
   {
     id: 3,
     name: "Pedro Reyes",
     email: "pedro.reyes@example.com",
-    status: "Pending",
-    type: "Application",
+    status: "Approved",
+    type: "Membership Approved",
     date: "2025-11-23",
   },
   {
     id: 4,
     name: "Ana Garcia",
     email: "ana.garcia@example.com",
-    status: "Approved",
-    type: "Membership",
+    status: "Rejected",
+    type: "Alumni Verification",
     date: "2025-11-22",
   },
   {
@@ -48,7 +48,7 @@ const recentActivity = ref([
     name: "Carlos Mercado",
     email: "carlos.mercado@example.com",
     status: "Pending",
-    type: "Application",
+    type: "Payment Verification",
     date: "2025-11-21",
   },
 ]);
@@ -68,7 +68,7 @@ const recentActivity = ref([
       </div>
 
       <!-- Stats Cards -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 md:mb-8">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6 md:mb-8">
         <NuxtLink
           v-for="stat in stats"
           :key="stat.label"

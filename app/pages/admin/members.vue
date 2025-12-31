@@ -12,7 +12,6 @@ const members = ref([
     degree: "BS Nursing",
     yearGraduated: "2018",
     memberSince: "2020-05-15",
-    membershipType: "Regular",
   },
   {
     id: 2,
@@ -21,7 +20,6 @@ const members = ref([
     degree: "BS Accountancy",
     yearGraduated: "2017",
     memberSince: "2019-08-20",
-    membershipType: "Lifetime",
   },
   {
     id: 3,
@@ -30,7 +28,6 @@ const members = ref([
     degree: "BS Psychology",
     yearGraduated: "2019",
     memberSince: "2021-02-10",
-    membershipType: "Regular",
   },
 ]);
 </script>
@@ -60,7 +57,7 @@ const members = ref([
         >
           Total Members
           <span
-            class="text-xs font-semibold size-6 rounded-lg bg-secondary text-white flex items-center justify-center -translate-y-px"
+            class="text-xs font-semibold size-6 rounded-lg bg-secondary/10 text-secondary flex items-center justify-center -translate-y-px"
           >
             {{ members.length }}
           </span>
@@ -110,11 +107,6 @@ const members = ref([
               <th
                 class="px-4 md:px-6 py-3 text-left text-xs font-medium text-subtle uppercase tracking-wider"
               >
-                Membership Type
-              </th>
-              <th
-                class="px-4 md:px-6 py-3 text-left text-xs font-medium text-subtle uppercase tracking-wider"
-              >
                 Actions
               </th>
             </tr>
@@ -148,18 +140,6 @@ const members = ref([
                 class="px-4 md:px-6 py-4 whitespace-nowrap text-sm text-subtle"
               >
                 {{ member.memberSince }}
-              </td>
-              <td class="px-4 md:px-6 py-4 whitespace-nowrap">
-                <span
-                  class="px-2 py-1 text-xs font-medium rounded-full"
-                  :class="
-                    member.membershipType === 'Lifetime'
-                      ? 'bg-accent bg-opacity-10 text-accent'
-                      : 'bg-primary bg-opacity-10 text-primary'
-                  "
-                >
-                  {{ member.membershipType }}
-                </span>
               </td>
               <td
                 class="px-4 md:px-6 py-4 whitespace-nowrap text-sm font-medium"
