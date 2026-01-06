@@ -25,6 +25,7 @@ defineProps<{
             label="Current Employer"
             placeholder="Company Name"
             :model-value="field.state.value"
+            :required="false"
             @update:model-value="field.handleChange"
             @blur="field.handleBlur"
           />
@@ -40,6 +41,7 @@ defineProps<{
               label="Job Title"
               placeholder="Software Engineer"
               :model-value="field.state.value"
+              :required="false"
               @update:model-value="field.handleChange"
               @blur="field.handleBlur"
             />
@@ -54,6 +56,7 @@ defineProps<{
               label="Industry"
               placeholder="Technology"
               :model-value="field.state.value"
+              :required="false"
               @update:model-value="field.handleChange"
               @blur="field.handleBlur"
             />

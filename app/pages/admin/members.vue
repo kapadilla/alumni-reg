@@ -1,35 +1,26 @@
 <script setup lang="ts">
 definePageMeta({
   layout: "admin",
+  middleware: ["auth"],
 });
 
-// Sample members data
-const members = ref([
-  {
-    id: 1,
-    name: "Ana Garcia",
-    email: "ana.garcia@example.com",
-    degree: "BS Nursing",
-    yearGraduated: "2018",
-    memberSince: "2020-05-15",
-  },
-  {
-    id: 2,
-    name: "Carlos Mercado",
-    email: "carlos.mercado@example.com",
-    degree: "BS Accountancy",
-    yearGraduated: "2017",
-    memberSince: "2019-08-20",
-  },
-  {
-    id: 3,
-    name: "Rosa Fernandez",
-    email: "rosa.fernandez@example.com",
-    degree: "BS Psychology",
-    yearGraduated: "2019",
-    memberSince: "2021-02-10",
-  },
-]);
+const {
+  members,
+  pagination,
+  loading,
+  fetchMembers,
+  exportMembersCSV,
+} = useMembers();
+
+const searchQuery = ref("");
+
+onMounted(() => {
+  fetchMembers();
+});
+
+const handleSearch = () => {
+  fetchMembers({ search: searchQuery.value });
+};
 </script>
 
 <template>
@@ -64,13 +55,27 @@ const members = ref([
         </h2>
         <button
           class="px-4 py-2 text-sm bg-primary text-white rounded-lg hover:bg-opacity-90 transition-colors"
+          @click="exportMembersCSV"
         >
           Export CSV
         </button>
       </div>
 
+      <!-- Loading State -->
+      <div v-if="loading" class="p-12 text-center">
+        <Icon name="svg-spinners:ring-resize" class="size-8 text-primary mx-auto mb-4" />
+        <p class="text-subtle text-sm">Loading members...</p>
+      </div>
+
+      <!-- Empty State -->
+      <div v-else-if="members.length === 0" class="p-12 text-center">
+        <Icon name="material-symbols:group" class="size-12 text-subtle/50 mx-auto mb-4" />
+        <p class="text-text font-medium mb-1">No members yet</p>
+        <p class="text-subtle text-sm">Approved members will appear here</p>
+      </div>
+
       <!-- Table with horizontal scroll -->
-      <div class="overflow-x-auto">
+      <div v-else class="overflow-x-auto">
         <table class="w-full min-w-[800px]">
           <thead class="bg-background">
             <tr>
@@ -123,7 +128,7 @@ const members = ref([
               <td
                 class="px-4 md:px-6 py-4 whitespace-nowrap text-sm font-medium text-text"
               >
-                {{ member.name }}
+                {{ member.fullName }}
               </td>
               <td
                 class="px-4 md:px-6 py-4 whitespace-nowrap text-sm text-subtle"
@@ -131,7 +136,7 @@ const members = ref([
                 {{ member.email }}
               </td>
               <td class="px-4 md:px-6 py-4 whitespace-nowrap text-sm text-text">
-                {{ member.degree }}
+                {{ member.degreeProgram }}
               </td>
               <td class="px-4 md:px-6 py-4 whitespace-nowrap text-sm text-text">
                 {{ member.yearGraduated }}

@@ -1,47 +1,64 @@
 <script setup lang="ts">
 definePageMeta({
   layout: "admin",
+  middleware: ["auth"],
 });
 
-// Sample pending alumni verification data
-const pendingVerifications = ref([
-  {
-    id: 1,
-    name: "Juan Dela Cruz",
-    email: "juan.delacruz@example.com",
-    degree: "BS Computer Science",
-    yearGraduated: "2020",
-    studentNumber: "2016-12345",
-    dateApplied: "2025-11-25",
-  },
-  {
-    id: 2,
-    name: "Maria Santos",
-    email: "maria.santos@example.com",
-    degree: "BS Biology",
-    yearGraduated: "2019",
-    studentNumber: "2015-67890",
-    dateApplied: "2025-11-24",
-  },
-  {
-    id: 3,
-    name: "Pedro Reyes",
-    email: "pedro.reyes@example.com",
-    degree: "BS Engineering",
-    yearGraduated: "2021",
-    studentNumber: "",
-    dateApplied: "2025-11-23",
-  },
-]);
+const {
+  alumniApplicants,
+  alumniPagination,
+  loadingAlumni,
+  fetchPendingAlumni,
+  verifyAlumni,
+  rejectAlumni,
+  exportAlumniCSV,
+} = useVerification();
 
-const verifyAsAlumni = (id: number) => {
-  console.log("Verify as alumni:", id);
-  // TODO: API call to verify
+// Search state
+const searchQuery = ref("");
+
+// Rejection dialog state
+const showRejectDialog = ref(false);
+const rejectingApplicant = ref<{ id: number; name: string } | null>(null);
+
+// Fetch data on mount
+onMounted(() => {
+  fetchPendingAlumni();
+});
+
+// Refresh data
+const refreshData = () => {
+  fetchPendingAlumni({ search: searchQuery.value });
 };
 
-const rejectApplicant = (id: number) => {
-  console.log("Reject applicant:", id);
-  // TODO: API call to reject
+// Verify alumni handler
+const handleVerify = async (id: number) => {
+  const success = await verifyAlumni(id);
+  if (success) {
+    refreshData();
+  }
+};
+
+// Open reject dialog
+const openRejectDialog = (id: number, name: string) => {
+  rejectingApplicant.value = { id, name };
+  showRejectDialog.value = true;
+};
+
+// Confirm rejection
+const confirmReject = async (reason: string) => {
+  if (!rejectingApplicant.value) return;
+  const success = await rejectAlumni(rejectingApplicant.value.id, reason);
+  if (success) {
+    showRejectDialog.value = false;
+    rejectingApplicant.value = null;
+    refreshData();
+  }
+};
+
+// Search handler
+const handleSearch = () => {
+  fetchPendingAlumni({ search: searchQuery.value });
 };
 </script>
 
@@ -72,19 +89,26 @@ const rejectApplicant = (id: number) => {
           <span
             class="text-xs font-semibold size-6 rounded-lg bg-primary/10 text-primary flex items-center justify-center -translate-y-px"
           >
-            {{ pendingVerifications.length }}
+            {{ alumniApplicants.length }}
           </span>
         </h2>
         <button
           class="px-4 py-2 text-sm bg-primary text-white rounded-lg hover:bg-opacity-90 transition-colors"
+          @click="exportAlumniCSV"
         >
           Export CSV
         </button>
       </div>
 
+      <!-- Loading State -->
+      <div v-if="loadingAlumni" class="p-12 text-center">
+        <Icon name="svg-spinners:ring-resize" class="size-8 text-primary mx-auto mb-4" />
+        <p class="text-subtle text-sm">Loading pending verifications...</p>
+      </div>
+
       <!-- Empty State -->
       <div
-        v-if="pendingVerifications.length === 0"
+        v-else-if="alumniApplicants.length === 0"
         class="p-12 text-center"
       >
         <Icon
@@ -144,7 +168,7 @@ const rejectApplicant = (id: number) => {
           </thead>
           <tbody class="divide-y divide-border">
             <tr
-              v-for="applicant in pendingVerifications"
+              v-for="applicant in alumniApplicants"
               :key="applicant.id"
               class="hover:bg-background transition-colors"
             >
@@ -183,7 +207,7 @@ const rejectApplicant = (id: number) => {
                 <div class="flex items-center gap-2">
                   <button
                     class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-secondary/10 text-secondary hover:bg-secondary/20 transition-all duration-200 active:scale-95"
-                    @click="verifyAsAlumni(applicant.id)"
+                    @click="handleVerify(applicant.id)"
                     title="Verify as Alumni"
                   >
                     <Icon name="material-symbols:check-circle" class="size-3.5" />
@@ -191,7 +215,7 @@ const rejectApplicant = (id: number) => {
                   </button>
                   <button
                     class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-500/20 transition-all duration-200 active:scale-95"
-                    @click="rejectApplicant(applicant.id)"
+                    @click="openRejectDialog(applicant.id, applicant.name)"
                     title="Reject Application"
                   >
                     <Icon name="material-symbols:cancel" class="size-3.5" />
@@ -211,5 +235,13 @@ const rejectApplicant = (id: number) => {
         </table>
       </div>
     </div>
+
+    <!-- Reject Dialog -->
+    <AdminRejectDialog
+      v-model="showRejectDialog"
+      title="Reject Alumni Verification"
+      :applicant-name="rejectingApplicant?.name"
+      @confirm="confirmReject"
+    />
   </div>
 </template>

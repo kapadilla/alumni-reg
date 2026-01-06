@@ -1,14 +1,19 @@
 <script setup lang="ts">
-const props = defineProps<{
-  id?: string;
-  label?: string;
-  type?: string;
-  placeholder?: string;
-  modelValue?: string;
-  required?: boolean;
-  error?: string | { message: string } | unknown;
-  hint?: string;
-}>();
+const props = withDefaults(
+  defineProps<{
+    id?: string;
+    label?: string;
+    type?: string;
+    placeholder?: string;
+    modelValue?: string;
+    required?: boolean;
+    error?: string | { message: string } | unknown;
+    hint?: string;
+  }>(),
+  {
+    required: true,
+  }
+);
 
 // Extract error message from various error formats
 const errorMessage = computed(() => {
@@ -34,7 +39,9 @@ defineEmits<{
   <div class="flex flex-col gap-1">
     <label v-if="label" :for="id" class="text-base font-medium text-text">
       {{ label }}
-      <span v-if="required" class="text-red-500">*</span>
+      <span v-if="!required" class="text-subtle text-sm font-normal ml-1"
+        >(Optional)</span
+      >
     </label>
     <p v-if="hint" class="text-sm text-subtle">
       {{ hint }}

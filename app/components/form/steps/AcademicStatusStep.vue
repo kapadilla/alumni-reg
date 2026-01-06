@@ -32,7 +32,6 @@ defineProps<{
             placeholder="e.g., BS Computer Science"
             :model-value="field.state.value"
             :error="field.state.meta.errors?.[0]"
-            required
             @update:model-value="field.handleChange"
             @blur="field.handleBlur"
           />
@@ -58,7 +57,6 @@ defineProps<{
               placeholder="2020"
               :model-value="field.state.value"
               :error="field.state.meta.errors?.[0]"
-              required
               @update:model-value="field.handleChange"
               @blur="field.handleBlur"
             />
@@ -71,8 +69,9 @@ defineProps<{
             <FormInput
               :id="field.name"
               label="Student Number"
-              placeholder="2016-12345 (optional)"
+              placeholder="2016-12345"
               :model-value="field.state.value"
+              :required="false"
               @update:model-value="field.handleChange"
               @blur="field.handleBlur"
             />

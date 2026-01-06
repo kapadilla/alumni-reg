@@ -1,5 +1,7 @@
 <script setup lang="ts">
 const route = useRoute();
+const { logout } = useAuth();
+
 const isSidebarExpanded = ref(false);
 const isMobileMenuOpen = ref(false);
 
@@ -29,10 +31,20 @@ const navigationItems = [
     icon: "material-symbols:verified",
     href: "/admin/members",
   },
+  {
+    name: "Admins",
+    icon: "material-symbols:admin-panel-settings",
+    href: "/admin/admins",
+  },
 ];
 
 const closeMobileMenu = () => {
   isMobileMenuOpen.value = false;
+};
+
+const handleLogout = async () => {
+  closeMobileMenu();
+  await logout();
 };
 </script>
 
@@ -81,10 +93,10 @@ const closeMobileMenu = () => {
 
           <!-- Logout -->
           <div class="px-2 pb-2 border-t border-border pt-2">
-            <NuxtLink
-              to="/admin/login"
+            <button
               class="h-10 transition-all duration-200 ease-in-out flex items-center rounded-lg text-sm font-medium text-text hover:bg-background overflow-hidden active:scale-[0.97] corner-squircle"
               :class="isSidebarExpanded ? 'w-full' : 'w-10 justify-center'"
+              @click="handleLogout"
             >
               <div class="flex items-center justify-center w-10 shrink-0">
                 <Icon name="material-symbols:logout" class="size-5" />
@@ -95,7 +107,7 @@ const closeMobileMenu = () => {
               >
                 Logout
               </span>
-            </NuxtLink>
+            </button>
           </div>
         </aside>
       </div>
@@ -148,14 +160,13 @@ const closeMobileMenu = () => {
               </NuxtLink>
 
               <!-- Logout -->
-              <NuxtLink
-                to="/admin/login"
-                class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-text hover:bg-background transition-all duration-200 ease-in-out active:scale-[0.97] border-t border-border mt-2 pt-4 corner-squircle"
-                @click="closeMobileMenu"
+              <button
+                class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-text hover:bg-background transition-all duration-200 ease-in-out active:scale-[0.97] border-t border-border mt-2 pt-4 corner-squircle w-full"
+                @click="handleLogout"
               >
                 <Icon name="material-symbols:logout" class="size-5" />
                 <span>Logout</span>
-              </NuxtLink>
+              </button>
             </nav>
           </div>
         </div>

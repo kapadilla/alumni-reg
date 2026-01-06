@@ -1,44 +1,55 @@
 <script setup lang="ts">
 definePageMeta({
   layout: "admin",
+  middleware: ["auth"],
 });
 
-// Sample pending payment verification data (already verified as alumni)
-const pendingPayments = ref([
-  {
-    id: 1,
-    name: "Elena Rodriguez",
-    email: "elena.rodriguez@example.com",
-    paymentMethod: "GCash",
-    amount: "₱5,000",
-    alumniVerifiedDate: "2025-11-20",
-  },
-  {
-    id: 2,
-    name: "Miguel Torres",
-    email: "miguel.torres@example.com",
-    paymentMethod: "Bank Transfer",
-    amount: "₱5,000",
-    alumniVerifiedDate: "2025-11-19",
-  },
-  {
-    id: 3,
-    name: "Sofia Reyes",
-    email: "sofia.reyes@example.com",
-    paymentMethod: "Cash",
-    amount: "₱5,000",
-    alumniVerifiedDate: "2025-11-18",
-  },
-]);
+const {
+  paymentApplicants,
+  paymentPagination,
+  loadingPayment,
+  fetchPendingPayments,
+  confirmPayment,
+  rejectPayment,
+  exportPaymentsCSV,
+} = useVerification();
 
-const confirmPayment = (id: number) => {
-  console.log("Confirm payment:", id);
-  // TODO: API call to confirm payment and approve membership
+const searchQuery = ref("");
+
+// Rejection dialog state
+const showRejectDialog = ref(false);
+const rejectingApplicant = ref<{ id: number; name: string } | null>(null);
+
+onMounted(() => {
+  fetchPendingPayments();
+});
+
+const refreshData = () => {
+  fetchPendingPayments({ search: searchQuery.value });
 };
 
-const rejectPayment = (id: number) => {
-  console.log("Reject payment:", id);
-  // TODO: API call to reject payment
+const handleConfirm = async (id: number) => {
+  const success = await confirmPayment(id);
+  if (success) {
+    refreshData();
+  }
+};
+
+// Open reject dialog
+const openRejectDialog = (id: number, name: string) => {
+  rejectingApplicant.value = { id, name };
+  showRejectDialog.value = true;
+};
+
+// Confirm rejection
+const confirmReject = async (reason: string) => {
+  if (!rejectingApplicant.value) return;
+  const success = await rejectPayment(rejectingApplicant.value.id, reason);
+  if (success) {
+    showRejectDialog.value = false;
+    rejectingApplicant.value = null;
+    refreshData();
+  }
 };
 </script>
 
@@ -69,19 +80,26 @@ const rejectPayment = (id: number) => {
           <span
             class="text-xs font-semibold size-6 rounded-lg bg-secondary/10 text-secondary flex items-center justify-center -translate-y-px"
           >
-            {{ pendingPayments.length }}
+            {{ paymentApplicants.length }}
           </span>
         </h2>
         <button
           class="px-4 py-2 text-sm bg-primary text-white rounded-lg hover:bg-opacity-90 transition-colors"
+          @click="exportPaymentsCSV"
         >
           Export CSV
         </button>
       </div>
 
+      <!-- Loading State -->
+      <div v-if="loadingPayment" class="p-12 text-center">
+        <Icon name="svg-spinners:ring-resize" class="size-8 text-primary mx-auto mb-4" />
+        <p class="text-subtle text-sm">Loading pending payments...</p>
+      </div>
+
       <!-- Empty State -->
       <div
-        v-if="pendingPayments.length === 0"
+        v-else-if="paymentApplicants.length === 0"
         class="p-12 text-center"
       >
         <Icon
@@ -136,7 +154,7 @@ const rejectPayment = (id: number) => {
           </thead>
           <tbody class="divide-y divide-border">
             <tr
-              v-for="payment in pendingPayments"
+              v-for="payment in paymentApplicants"
               :key="payment.id"
               class="hover:bg-background transition-colors"
             >
@@ -170,7 +188,7 @@ const rejectPayment = (id: number) => {
                 <div class="flex items-center gap-2">
                   <button
                     class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-secondary/10 text-secondary hover:bg-secondary/20 transition-all duration-200 active:scale-95"
-                    @click="confirmPayment(payment.id)"
+                    @click="handleConfirm(payment.id)"
                     title="Confirm Payment"
                   >
                     <Icon name="material-symbols:check-circle" class="size-3.5" />
@@ -178,7 +196,7 @@ const rejectPayment = (id: number) => {
                   </button>
                   <button
                     class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-500/20 transition-all duration-200 active:scale-95"
-                    @click="rejectPayment(payment.id)"
+                    @click="openRejectDialog(payment.id, payment.name)"
                     title="Reject Payment"
                   >
                     <Icon name="material-symbols:cancel" class="size-3.5" />
@@ -198,5 +216,13 @@ const rejectPayment = (id: number) => {
         </table>
       </div>
     </div>
+
+    <!-- Reject Dialog -->
+    <AdminRejectDialog
+      v-model="showRejectDialog"
+      title="Reject Payment Verification"
+      :applicant-name="rejectingApplicant?.name"
+      @confirm="confirmReject"
+    />
   </div>
 </template>

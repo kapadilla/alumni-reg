@@ -6,6 +6,11 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   css: ["./app/assets/css/main.css", "vue-sonner/style.css"],
   compatibilityDate: "2025-07-15",
+  runtimeConfig: {
+    public: {
+      apiBaseUrl: "http://127.0.0.1:8000/api",
+    },
+  },
   vite: {
     plugins: [tailwindcss()],
   },

@@ -18,4 +18,5 @@ import { Toaster } from "vue-sonner";
       },
     }"
   />
+  <AppCookieConsent />
 </template>

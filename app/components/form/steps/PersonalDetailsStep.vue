@@ -119,6 +119,7 @@ const barangayOptions = [
             label="Suffix"
             placeholder="Jr."
             :model-value="field.state.value"
+            :required="false"
             @update:model-value="field.handleChange"
             @blur="field.handleBlur"
           />
@@ -136,6 +137,7 @@ const barangayOptions = [
             placeholder="(if applicable)"
             hint="For verifying school records"
             :model-value="field.state.value"
+            :required="false"
             @update:model-value="field.handleChange"
             @blur="field.handleBlur"
           />

@@ -1,35 +1,26 @@
 <script setup lang="ts">
 definePageMeta({
   layout: "admin",
+  middleware: ["auth"],
 });
 
-// Sample rejected applicants data
-const rejectedApplicants = ref([
-  {
-    id: 1,
-    name: "Roberto Cruz",
-    email: "roberto.cruz@example.com",
-    rejectedAt: "2025-11-24",
-    rejectionStage: "Alumni Verification",
-    reason: "Name not found in alumni records",
-  },
-  {
-    id: 2,
-    name: "Linda Gomez",
-    email: "linda.gomez@example.com",
-    rejectedAt: "2025-11-23",
-    rejectionStage: "Payment Verification",
-    reason: "Payment not received after 30 days",
-  },
-  {
-    id: 3,
-    name: "Marco Tan",
-    email: "marco.tan@example.com",
-    rejectedAt: "2025-11-20",
-    rejectionStage: "Alumni Verification",
-    reason: "Graduation year does not match records",
-  },
-]);
+const {
+  rejectedApplicants,
+  pagination,
+  loading,
+  fetchRejected,
+  exportRejectedCSV,
+} = useRejected();
+
+const searchQuery = ref("");
+
+onMounted(() => {
+  fetchRejected();
+});
+
+const handleSearch = () => {
+  fetchRejected({ search: searchQuery.value });
+};
 </script>
 
 <template>
@@ -64,14 +55,21 @@ const rejectedApplicants = ref([
         </h2>
         <button
           class="px-4 py-2 text-sm bg-primary text-white rounded-lg hover:bg-opacity-90 transition-colors"
+          @click="exportRejectedCSV"
         >
           Export CSV
         </button>
       </div>
 
+      <!-- Loading State -->
+      <div v-if="loading" class="p-12 text-center">
+        <Icon name="svg-spinners:ring-resize" class="size-8 text-primary mx-auto mb-4" />
+        <p class="text-subtle text-sm">Loading rejected applicants...</p>
+      </div>
+
       <!-- Empty State -->
       <div
-        v-if="rejectedApplicants.length === 0"
+        v-else-if="rejectedApplicants.length === 0"
         class="p-12 text-center"
       >
         <Icon
