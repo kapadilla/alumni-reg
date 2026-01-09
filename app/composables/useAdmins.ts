@@ -4,6 +4,8 @@ import type {
     AdminsResponse,
     CreateAdminPayload,
     UpdateAdminPayload,
+    ReactivateAdminPayload,
+    AdminActivityResponse,
 } from "~/types";
 
 export const useAdmins = () => {
@@ -133,6 +135,75 @@ export const useAdmins = () => {
         }
     };
 
+    /**
+     * Reactivate a deactivated admin
+     */
+    const reactivateAdmin = async (
+        id: number,
+        payload?: ReactivateAdminPayload
+    ): Promise<Admin | null> => {
+        try {
+            const response = await apiFetch<Admin>(
+                `/auth/admins/${id}/reactivate/`,
+                {
+                    method: "POST",
+                    body: payload,
+                }
+            );
+            if (response.success && response.data) {
+                toast.success("Admin reactivated successfully");
+                return response.data;
+            } else {
+                toast.error(response.message || "Failed to reactivate admin");
+                return null;
+            }
+        } catch (error) {
+            toast.error("Failed to reactivate admin");
+            console.error("Reactivate admin error:", error);
+            return null;
+        }
+    };
+
+    /**
+     * Fetch activity log for a specific admin
+     */
+    const fetchAdminActivity = async (
+        id: number,
+        params?: {
+            dateFrom?: string;
+            dateTo?: string;
+            action?: string;
+            targetType?: string;
+            ordering?: string;
+            page?: number;
+            limit?: number;
+        }
+    ): Promise<AdminActivityResponse | null> => {
+        try {
+            const query: Record<string, string | number | undefined> = {};
+            if (params?.dateFrom) query.date_from = params.dateFrom;
+            if (params?.dateTo) query.date_to = params.dateTo;
+            if (params?.action) query.action = params.action;
+            if (params?.targetType) query.target_type = params.targetType;
+            if (params?.ordering) query.ordering = params.ordering;
+            if (params?.page) query.page = params.page;
+            if (params?.limit) query.limit = params.limit;
+
+            const response = await apiFetch<AdminActivityResponse>(
+                `/auth/admins/${id}/activity/`,
+                { query }
+            );
+            if (response.success && response.data) {
+                return response.data;
+            }
+            return null;
+        } catch (error) {
+            toast.error("Failed to fetch admin activity");
+            console.error("Fetch admin activity error:", error);
+            return null;
+        }
+    };
+
     return {
         // State
         admins,
@@ -144,6 +215,8 @@ export const useAdmins = () => {
         createAdmin,
         updateAdmin,
         deleteAdmin,
+        reactivateAdmin,
+        fetchAdminActivity,
     };
 };
 

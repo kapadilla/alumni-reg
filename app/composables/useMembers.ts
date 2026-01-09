@@ -1,7 +1,7 @@
 import { toast } from "vue-sonner";
 import type {
     MemberSummary,
-    ApplicantDetails,
+    MemberDetails,
     PaginatedResponse,
 } from "~/types";
 
@@ -9,6 +9,12 @@ interface FetchParams {
     search?: string;
     page?: number;
     limit?: number;
+    ordering?: string;
+    date_from?: string;
+    date_to?: string;
+    degree_program?: string;
+    year_graduated?: string;
+    status?: "active" | "revoked" | "all" | "";
 }
 
 interface MemberUpdateData {
@@ -25,11 +31,11 @@ interface MemberUpdateData {
 }
 
 export const useMembers = () => {
-    const { get, put, del, download } = useApi();
+    const { get, put, post, del, download } = useApi();
     const config = useRuntimeConfig();
 
     const members = ref<MemberSummary[]>([]);
-    const pagination = ref({ currentPage: 1, totalPages: 1, totalItems: 0 });
+    const pagination = ref({ currentPage: 1, totalPages: 1, totalItems: 0, limit: 20 });
     const loading = ref(false);
 
     const fetchMembers = async (params: FetchParams = {}): Promise<void> => {
@@ -39,10 +45,19 @@ export const useMembers = () => {
                 search: params.search,
                 page: params.page,
                 limit: params.limit,
+                ordering: params.ordering,
+                date_from: params.date_from,
+                date_to: params.date_to,
+                degree_program: params.degree_program,
+                year_graduated: params.year_graduated,
+                status: params.status || undefined,
             });
             if (response.success && response.data) {
                 members.value = response.data.members || [];
-                pagination.value = response.data.pagination;
+                pagination.value = {
+                    ...response.data.pagination,
+                    limit: params.limit || 20,
+                };
             }
         }
         finally {
@@ -50,11 +65,56 @@ export const useMembers = () => {
         }
     };
 
-    const getMemberDetails = async (id: number): Promise<ApplicantDetails | null> => {
+    // API now returns flattened camelCase structure directly
+    interface ApiMemberDetails {
+        id: number;
+        memberSince: string;
+        isActive: boolean;
+        personalDetails: MemberDetails["personalDetails"];
+        academicStatus: MemberDetails["academicStatus"];
+        professional: MemberDetails["professional"];
+        membership: MemberDetails["membership"];
+        history: MemberDetails["history"];
+    }
+
+    const getMemberDetails = async (id: number): Promise<MemberDetails | null> => {
         try {
-            const response = await get<ApplicantDetails>(`/members/${id}/`);
+            const response = await get<ApiMemberDetails>(`/members/${id}/`);
             if (response.success && response.data) {
-                return response.data;
+                const api = response.data;
+                return {
+                    id: api.id,
+                    user: {
+                        id: api.id,
+                        email: api.personalDetails?.email || "",
+                        firstName: api.personalDetails?.firstName || "",
+                        lastName: api.personalDetails?.lastName || "",
+                    },
+                    personalDetails: api.personalDetails || {
+                        title: "",
+                        firstName: "",
+                        lastName: "",
+                        dateOfBirth: "",
+                        email: "",
+                        mobileNumber: "",
+                        currentAddress: "",
+                        province: "",
+                        city: "",
+                        barangay: "",
+                    },
+                    academicStatus: api.academicStatus || {
+                        degreeProgram: "",
+                        yearGraduated: "",
+                    },
+                    professional: api.professional || {},
+                    membership: api.membership || {
+                        paymentMethod: "",
+                    },
+                    mentorship: [],
+                    history: api.history || [],
+                    memberSince: api.memberSince || "",
+                    isActive: api.isActive ?? true,
+                };
             }
             return null;
         }
@@ -79,9 +139,9 @@ export const useMembers = () => {
         }
     };
 
-    const revokeMembership = async (id: number): Promise<boolean> => {
+    const revokeMembership = async (id: number, reason: string, notes?: string): Promise<boolean> => {
         try {
-            const response = await del(`/members/${id}/revoke/`);
+            const response = await post(`/members/${id}/revoke/`, { reason, notes });
             if (response.success) {
                 toast.success("Membership revoked");
                 return true;
@@ -91,6 +151,22 @@ export const useMembers = () => {
         }
         catch {
             toast.error("Revocation failed");
+            return false;
+        }
+    };
+
+    const reinstateMembership = async (id: number, notes?: string): Promise<boolean> => {
+        try {
+            const response = await post(`/members/${id}/reinstate/`, { notes });
+            if (response.success) {
+                toast.success("Membership reinstated");
+                return true;
+            }
+            toast.error("Reinstatement failed", { description: response.message });
+            return false;
+        }
+        catch {
+            toast.error("Reinstatement failed");
             return false;
         }
     };
@@ -107,6 +183,7 @@ export const useMembers = () => {
         getMemberDetails,
         updateMember,
         revokeMembership,
+        reinstateMembership,
         exportMembersCSV,
     };
 };

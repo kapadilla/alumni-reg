@@ -6,9 +6,16 @@ import type {
 
 interface FetchParams {
     search?: string;
-    rejectionStage?: "alumni_verification" | "payment_verification";
     page?: number;
     limit?: number;
+    ordering?: string;
+    date_from?: string;
+    date_to?: string;
+    rejected_from?: string;
+    rejected_to?: string;
+    rejection_stage?: "alumni_verification" | "payment_verification";
+    degree_program?: string;
+    year_graduated?: string;
 }
 
 export const useRejected = () => {
@@ -16,7 +23,7 @@ export const useRejected = () => {
     const config = useRuntimeConfig();
 
     const rejectedApplicants = ref<ApplicantSummary[]>([]);
-    const pagination = ref({ currentPage: 1, totalPages: 1, totalItems: 0 });
+    const pagination = ref({ currentPage: 1, totalPages: 1, totalItems: 0, limit: 20 });
     const loading = ref(false);
 
     const fetchRejected = async (params: FetchParams = {}): Promise<void> => {
@@ -24,13 +31,23 @@ export const useRejected = () => {
         try {
             const response = await get<PaginatedResponse<ApplicantSummary>>("/rejected/", {
                 search: params.search,
-                rejectionStage: params.rejectionStage,
                 page: params.page,
                 limit: params.limit,
+                ordering: params.ordering,
+                date_from: params.date_from,
+                date_to: params.date_to,
+                rejected_from: params.rejected_from,
+                rejected_to: params.rejected_to,
+                rejection_stage: params.rejection_stage,
+                degree_program: params.degree_program,
+                year_graduated: params.year_graduated,
             });
             if (response.success && response.data) {
                 rejectedApplicants.value = response.data.applicants || [];
-                pagination.value = response.data.pagination;
+                pagination.value = {
+                    ...response.data.pagination,
+                    limit: params.limit || 20,
+                };
             }
         }
         finally {

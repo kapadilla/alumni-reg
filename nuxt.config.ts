@@ -8,7 +8,7 @@ export default defineNuxtConfig({
   compatibilityDate: "2025-07-15",
   runtimeConfig: {
     public: {
-      apiBaseUrl: "http://127.0.0.1:8000/api",
+      apiBaseUrl: "http://127.0.0.1:8000/api/v1",
     },
   },
   vite: {

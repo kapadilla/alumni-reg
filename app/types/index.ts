@@ -29,10 +29,11 @@ export interface VerifyResponse {
 export interface Admin {
     id: number;
     email: string;
-    first_name: string;
-    last_name: string;
-    is_active: boolean;
-    date_joined: string;
+    firstName: string;
+    lastName: string;
+    isActive: boolean;
+    dateJoined: string;
+    lastLogin?: string | null;
     last_login?: string | null;
 }
 
@@ -44,15 +45,36 @@ export interface AdminsResponse {
 export interface CreateAdminPayload {
     email: string;
     password: string;
-    first_name?: string;
-    last_name?: string;
+    firstName?: string;
+    lastName?: string;
 }
 
 export interface UpdateAdminPayload {
     email?: string;
     password?: string;
-    first_name?: string;
-    last_name?: string;
+    firstName?: string;
+    lastName?: string;
+}
+
+export interface ReactivateAdminPayload {
+    notes?: string;
+}
+
+export interface AdminActivity {
+    id: number;
+    action: string;
+    actionDisplay: string;
+    timestamp: string;
+    targetType: string | null;
+    targetId: number | null;
+    targetName: string;
+    notes: string;
+    ipAddress: string;
+}
+
+export interface AdminActivityResponse {
+    activities: AdminActivity[];
+    pagination: Pagination;
 }
 
 // Registration Types
@@ -96,7 +118,7 @@ export interface ApplicantSummary {
     id: number;
     name: string;
     email: string;
-    degree?: string;
+    degreeProgram?: string;
     yearGraduated?: string;
     studentNumber?: string;
     status: string;
@@ -138,6 +160,10 @@ export interface Professional {
 
 export interface Membership {
     paymentMethod: string;
+    amount?: number;
+    referenceNumber?: string; // or transaction ID
+    receiptUrl?: string; // URL to uploaded proof
+    paymentDate?: string;
 }
 
 export interface HistoryEntry {
@@ -157,6 +183,10 @@ export interface ApplicantDetails {
     professional: Professional;
     membership: Membership;
     history: HistoryEntry[];
+    // Optional rejection details
+    rejectedAt?: string;
+    rejectionStage?: string;
+    reason?: string;
 }
 
 // Registration Form Data (for submission)
@@ -191,6 +221,27 @@ export interface MemberSummary {
     isActive: boolean;
 }
 
+export interface MentorshipInfo {
+    id: number;
+    relation: "mentor" | "mentee";
+    partnerName: string;
+    startDate: string;
+    status: "active" | "completed";
+}
+
+export interface MemberDetails {
+    id: number;
+    user: User; // Basic user info
+    personalDetails: PersonalDetails;
+    academicStatus: AcademicStatus;
+    professional: Professional;
+    membership: Membership;
+    mentorship: MentorshipInfo[]; // Placeholder array
+    history: HistoryEntry[];
+    memberSince: string;
+    isActive: boolean;
+}
+
 // Dashboard Types
 export interface DashboardStat {
     label: string;
@@ -198,12 +249,12 @@ export interface DashboardStat {
 }
 
 export interface ActivityItem {
-    id: number;
-    name: string;
-    email: string;
-    status: string;
-    type: string;
-    date: string;
+    id: string;           // Format: "al-45", "vh-123"
+    type: string;         // e.g., "Approved Member", "Alumni Verified"
+    description: string;  // Applicant/member name
+    performedBy: string;  // Admin email
+    timestamp: string;    // ISO timestamp
+    notes?: string;       // Optional additional context
 }
 
 export interface DashboardStatsResponse {

@@ -12,6 +12,11 @@ interface FetchParams {
     search?: string;
     page?: number;
     limit?: number;
+    ordering?: string;
+    date_from?: string;
+    date_to?: string;
+    degree_program?: string;
+    year_graduated?: string;
 }
 
 export const useVerification = () => {
@@ -20,7 +25,7 @@ export const useVerification = () => {
 
     // Alumni Verification
     const alumniApplicants = ref<ApplicantSummary[]>([]);
-    const alumniPagination = ref({ currentPage: 1, totalPages: 1, totalItems: 0 });
+    const alumniPagination = ref({ currentPage: 1, totalPages: 1, totalItems: 0, limit: 20 });
     const loadingAlumni = ref(false);
 
     const fetchPendingAlumni = async (params: FetchParams = {}): Promise<void> => {
@@ -30,10 +35,18 @@ export const useVerification = () => {
                 search: params.search,
                 page: params.page,
                 limit: params.limit,
+                ordering: params.ordering,
+                date_from: params.date_from,
+                date_to: params.date_to,
+                degree_program: params.degree_program,
+                year_graduated: params.year_graduated,
             });
             if (response.success && response.data) {
                 alumniApplicants.value = response.data.applicants || [];
-                alumniPagination.value = response.data.pagination;
+                alumniPagination.value = {
+                    ...response.data.pagination,
+                    limit: params.limit || 20,
+                };
             }
         }
         finally {
@@ -96,7 +109,7 @@ export const useVerification = () => {
 
     // Payment Verification
     const paymentApplicants = ref<ApplicantSummary[]>([]);
-    const paymentPagination = ref({ currentPage: 1, totalPages: 1, totalItems: 0 });
+    const paymentPagination = ref({ currentPage: 1, totalPages: 1, totalItems: 0, limit: 20 });
     const loadingPayment = ref(false);
 
     const fetchPendingPayments = async (params: FetchParams = {}): Promise<void> => {
@@ -106,10 +119,18 @@ export const useVerification = () => {
                 search: params.search,
                 page: params.page,
                 limit: params.limit,
+                ordering: params.ordering,
+                date_from: params.date_from,
+                date_to: params.date_to,
+                degree_program: params.degree_program,
+                year_graduated: params.year_graduated,
             });
             if (response.success && response.data) {
                 paymentApplicants.value = response.data.applicants || [];
-                paymentPagination.value = response.data.pagination;
+                paymentPagination.value = {
+                    ...response.data.pagination,
+                    limit: params.limit || 20,
+                };
             }
         }
         finally {
