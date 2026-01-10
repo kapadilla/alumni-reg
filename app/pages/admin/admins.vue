@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Admin, CreateAdminPayload, UpdateAdminPayload } from "~/types";
 import AdminDetailsModal from "~/components/admin/modal/AdminDetailsModal.vue";
+import { useNetworkStatus } from "~/composables/useNetworkStatus";
 
 definePageMeta({
   layout: "admin",
@@ -22,6 +23,8 @@ const {
   deleteAdmin,
   reactivateAdmin,
 } = useAdmins();
+
+const { isOnline } = useNetworkStatus();
 
 // View modal state
 const showViewModal = ref(false);
@@ -187,8 +190,11 @@ const handleReactivate = async () => {
         </button>
       </div>
 
+      <!-- Offline State (Highest Priority) -->
+      <AdminOfflineTableState v-if="!isOnline" />
+
       <!-- Loading State -->
-      <div v-if="loading" class="p-12 text-center">
+      <div v-else-if="loading" class="p-12 text-center">
         <Icon
           name="svg-spinners:ring-resize"
           class="size-8 text-primary mx-auto mb-4"

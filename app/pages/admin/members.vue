@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { MemberDetails } from "~/types";
+import { useNetworkStatus } from "~/composables/useNetworkStatus";
 
 definePageMeta({
   layout: "admin",
@@ -23,6 +24,7 @@ const {
 } = useMembers();
 
 const { filterOptions, fetchFilterOptions } = useFilterOptions();
+const { isOnline } = useNetworkStatus();
 
 // Filter state
 const search = ref("");
@@ -269,8 +271,11 @@ onMounted(() => {
         </template>
       </AdminTableFilters>
 
+      <!-- Offline State (Highest Priority) -->
+      <AdminOfflineTableState v-if="!isOnline" />
+
       <!-- Loading State -->
-      <div v-if="loading" class="p-12 text-center">
+      <div v-else-if="loading" class="p-12 text-center">
         <Icon name="svg-spinners:ring-resize" class="size-8 text-primary mx-auto mb-4" />
         <p class="text-subtle text-sm">Loading members...</p>
       </div>

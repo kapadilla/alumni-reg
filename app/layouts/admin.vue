@@ -50,6 +50,9 @@ const handleLogout = async () => {
 
 <template>
   <div class="flex flex-col min-h-screen bg-background">
+    <!-- Network Status Toast -->
+    <AppNetworkToast />
+    
     <!-- Header - Full Width -->
     <div class="fixed top-0 left-0 right-0 z-50">
       <AdminNavbar @toggle-menu="isMobileMenuOpen = !isMobileMenuOpen" />

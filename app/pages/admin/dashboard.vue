@@ -11,6 +11,7 @@ useHead({
 
 const { stats, activities, loadingStats, loadingActivity, fetchStats, fetchActivity } = useDashboard();
 const { admins, fetchAdmins } = useAdmins();
+const { isOnline } = useNetworkStatus();
 
 // Map stats to include href for navigation
 const statCards = computed(() => {
@@ -147,8 +148,11 @@ onMounted(async () => {
           </h2>
         </div>
 
+        <!-- Offline State (Highest Priority) -->
+        <AdminOfflineTableState v-if="!isOnline" />
+
         <!-- Loading State -->
-        <div v-if="loadingActivity" class="p-12 text-center">
+        <div v-else-if="loadingActivity" class="p-12 text-center">
           <Icon name="svg-spinners:ring-resize" class="size-8 text-primary mx-auto mb-4" />
           <p class="text-subtle text-sm">Loading recent activity...</p>
         </div>

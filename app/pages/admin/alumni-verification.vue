@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { ApplicantDetails } from "~/types";
+import { useNetworkStatus } from "~/composables/useNetworkStatus";
 
 definePageMeta({
   layout: "admin",
@@ -23,6 +24,7 @@ const {
 } = useVerification();
 
 const { filterOptions, fetchFilterOptions } = useFilterOptions();
+const { isOnline } = useNetworkStatus();
 
 // Filter state
 const search = ref("");
@@ -215,8 +217,11 @@ onMounted(() => {
         @clear="handleClearFilters"
       />
 
+      <!-- Offline State (Highest Priority) -->
+      <AdminOfflineTableState v-if="!isOnline" />
+
       <!-- Loading State -->
-      <div v-if="loadingAlumni" class="p-12 text-center">
+      <div v-else-if="loadingAlumni" class="p-12 text-center">
         <Icon name="svg-spinners:ring-resize" class="size-8 text-primary mx-auto mb-4" />
         <p class="text-subtle text-sm">Loading pending verifications...</p>
       </div>
