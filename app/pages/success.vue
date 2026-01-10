@@ -1,3 +1,9 @@
+<script setup lang="ts">
+useHead({
+  title: "Registration Successful - UP Cebu Alumni Association",
+});
+</script>
+
 <template>
   <div
     class="h-[calc(100vh-3.5rem)] bg-background flex items-center justify-center p-4"

@@ -7,6 +7,11 @@ definePageMeta({
   middleware: ["auth"],
 });
 
+useHead({
+  title: "Admin Users - UP Cebu Alumni Association",
+});
+
+
 const {
   admins,
   loading,

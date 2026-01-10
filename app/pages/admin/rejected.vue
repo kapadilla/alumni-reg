@@ -7,6 +7,11 @@ definePageMeta({
   middleware: ["auth"],
 });
 
+useHead({
+  title: "Rejected Applications - UP Cebu Alumni Association",
+});
+
+
 const {
   rejectedApplicants,
   pagination,

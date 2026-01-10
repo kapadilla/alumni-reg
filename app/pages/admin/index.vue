@@ -3,6 +3,11 @@ definePageMeta({
   layout: false,
 });
 
+useHead({
+  title: "Admin - UP Cebu Alumni Association",
+});
+
+
 const { isAuthenticated, verifyToken } = useAuth();
 const authToken = useCookie("auth_token");
 

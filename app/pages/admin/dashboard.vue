@@ -4,6 +4,11 @@ definePageMeta({
   middleware: ["auth"],
 });
 
+useHead({
+  title: "Dashboard - UP Cebu Alumni Association",
+});
+
+
 const { stats, activities, loadingStats, loadingActivity, fetchStats, fetchActivity } = useDashboard();
 const { admins, fetchAdmins } = useAdmins();
 

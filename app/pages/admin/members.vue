@@ -6,6 +6,11 @@ definePageMeta({
   middleware: ["auth"],
 });
 
+useHead({
+  title: "Members - UP Cebu Alumni Association",
+});
+
+
 const {
   members,
   pagination,

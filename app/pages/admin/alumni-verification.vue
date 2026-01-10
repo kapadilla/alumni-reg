@@ -6,6 +6,11 @@ definePageMeta({
   middleware: ["auth"],
 });
 
+useHead({
+  title: "Alumni Verification - UP Cebu Alumni Association",
+});
+
+
 const {
   alumniApplicants,
   alumniPagination,

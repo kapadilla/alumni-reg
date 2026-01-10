@@ -4,6 +4,11 @@ definePageMeta({
   middleware: ["guest"],
 });
 
+useHead({
+  title: "Admin Login - UP Cebu Alumni Association",
+});
+
+
 const { login, isLoading, error } = useAuth();
 
 const email = ref("");

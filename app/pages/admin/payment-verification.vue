@@ -6,6 +6,11 @@ definePageMeta({
   middleware: ["auth"],
 });
 
+useHead({
+  title: "Payment Verification - UP Cebu Alumni Association",
+});
+
+
 const {
   paymentApplicants,
   paymentPagination,
