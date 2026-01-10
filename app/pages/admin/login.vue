@@ -1,7 +1,15 @@
 <script setup lang="ts">
 definePageMeta({
   layout: "auth",
+  middleware: ["guest"],
 });
+
+useHead({
+  title: "Admin Login - UP Cebu Alumni Association",
+});
+
+
+const { login, isLoading, error } = useAuth();
 
 const email = ref("");
 const password = ref("");
@@ -11,12 +19,9 @@ const togglePasswordVisibility = () => {
   showPassword.value = !showPassword.value;
 };
 
-const handleLogin = () => {
-  console.log("Login attempt:", {
-    email: email.value,
-    password: password.value,
-  });
-  // TODO: Implement login logic
+const handleLogin = async () => {
+  if (!email.value || !password.value) return;
+  await login(email.value, password.value);
 };
 </script>
 
@@ -38,6 +43,18 @@ const handleLogin = () => {
 
         <!-- Login Form -->
         <form class="space-y-6" @submit.prevent="handleLogin">
+          <!-- Error Alert -->
+          <div
+            v-if="error"
+            class="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 text-sm flex items-center gap-3"
+          >
+            <Icon
+              name="material-symbols:error-outline"
+              class="size-5 shrink-0"
+            />
+            <p class="font-medium">{{ error }}</p>
+          </div>
+
           <!-- Email Field -->
           <div class="space-y-2">
             <label for="email" class="block text-sm font-medium text-text">
@@ -86,13 +103,23 @@ const handleLogin = () => {
           <!-- Submit Button -->
           <button
             type="submit"
-            class="w-full px-5 py-3 rounded-xl bg-primary text-white hover:bg-opacity-90 transition-colors font-medium flex items-center justify-center gap-2 group"
+            :disabled="isLoading"
+            class="w-full px-5 py-3 rounded-xl bg-primary text-white hover:bg-opacity-90 transition-colors font-medium flex items-center justify-center gap-2 group disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Sign In
-            <Icon
-              name="material-symbols:arrow-forward"
-              class="size-5 transition-transform group-hover:translate-x-1"
-            />
+            <template v-if="isLoading">
+              <Icon
+                name="svg-spinners:ring-resize"
+                class="size-5"
+              />
+              Signing In...
+            </template>
+            <template v-else>
+              Sign In
+              <Icon
+                name="material-symbols:arrow-forward"
+                class="size-5 transition-transform group-hover:translate-x-1"
+              />
+            </template>
           </button>
         </form>
       </div>

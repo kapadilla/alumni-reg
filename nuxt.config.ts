@@ -2,9 +2,18 @@ import tailwindcss from "@tailwindcss/vite";
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  compatibilityDate: "2025-07-15",
-  devtools: { enabled: true },
   modules: ["@nuxt/fonts", "@nuxt/eslint", "@nuxt/icon", "@nuxt/image"],
+  devtools: { enabled: true },
+  css: ["./app/assets/css/main.css", "vue-sonner/style.css"],
+  compatibilityDate: "2025-07-15",
+  runtimeConfig: {
+    public: {
+      apiBaseUrl: "http://127.0.0.1:8000/api/v1",
+    },
+  },
+  vite: {
+    plugins: [tailwindcss()],
+  },
   eslint: {
     config: {
       stylistic: {
@@ -15,8 +24,4 @@ export default defineNuxtConfig({
       },
     },
   },
-  vite: {
-    plugins: [tailwindcss()],
-  },
-  css: ["./app/assets/css/main.css"],
 });

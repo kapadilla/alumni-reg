@@ -1,58 +1,67 @@
 <script setup lang="ts">
-interface ProfessionalData {
-  currentEmployer: string;
-  jobTitle: string;
-  industry: string;
-}
+import type { FormApi } from "@tanstack/vue-form";
+import type { RegistrationFormData } from "~/utils/schemas";
 
-const props = defineProps<{
-  formData: ProfessionalData;
+defineProps<{
+  form: FormApi<RegistrationFormData, undefined>;
 }>();
-
-const emit = defineEmits<{
-  "update:formData": [data: ProfessionalData];
-}>();
-
-const updateField = (field: keyof ProfessionalData, value: string) => {
-  emit("update:formData", { ...props.formData, [field]: value });
-};
 </script>
 
 <template>
   <div class="space-y-6">
     <div>
-      <h2 class="text-2xl font-bold text-text mb-2">
-        Professional Information
-      </h2>
+      <h2 class="text-2xl font-bold text-text mb-2">Professional</h2>
       <p class="text-subtle">
         Tell us about your current professional status (optional).
       </p>
     </div>
 
     <div class="space-y-4">
-      <FormInput
-        id="currentEmployer"
-        label="Current Employer"
-        placeholder="Company Name"
-        :model-value="formData.currentEmployer"
-        @update:model-value="(val) => updateField('currentEmployer', val)"
-      />
+      <!-- Current Employer -->
+      <form.Field name="professional.currentEmployer">
+        <template #default="{ field }">
+          <FormInput
+            :id="field.name"
+            label="Current Employer"
+            placeholder="Company Name"
+            :model-value="field.state.value"
+            :required="false"
+            @update:model-value="field.handleChange"
+            @blur="field.handleBlur"
+          />
+        </template>
+      </form.Field>
 
       <div class="grid grid-cols-2 gap-4">
-        <FormInput
-          id="jobTitle"
-          label="Job Title"
-          placeholder="Software Engineer"
-          :model-value="formData.jobTitle"
-          @update:model-value="(val) => updateField('jobTitle', val)"
-        />
-        <FormInput
-          id="industry"
-          label="Industry"
-          placeholder="Technology"
-          :model-value="formData.industry"
-          @update:model-value="(val) => updateField('industry', val)"
-        />
+        <!-- Job Title -->
+        <form.Field name="professional.jobTitle">
+          <template #default="{ field }">
+            <FormInput
+              :id="field.name"
+              label="Job Title"
+              placeholder="Software Engineer"
+              :model-value="field.state.value"
+              :required="false"
+              @update:model-value="field.handleChange"
+              @blur="field.handleBlur"
+            />
+          </template>
+        </form.Field>
+
+        <!-- Industry -->
+        <form.Field name="professional.industry">
+          <template #default="{ field }">
+            <FormInput
+              :id="field.name"
+              label="Industry"
+              placeholder="Technology"
+              :model-value="field.state.value"
+              :required="false"
+              @update:model-value="field.handleChange"
+              @blur="field.handleBlur"
+            />
+          </template>
+        </form.Field>
       </div>
     </div>
   </div>
