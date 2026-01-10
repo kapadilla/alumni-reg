@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useLocalStorage } from "@vueuse/core";
 definePageMeta({
   layout: "admin",
   middleware: ["auth"],
@@ -12,6 +13,10 @@ useHead({
 const { stats, activities, loadingStats, loadingActivity, fetchStats, fetchActivity } = useDashboard();
 const { admins, fetchAdmins } = useAdmins();
 const { isOnline } = useNetworkStatus();
+
+// Activity limit state (persisted in localStorage)
+const activityLimit = useLocalStorage('dashboard-activity-limit', 5);
+const activityLimitOptions = [5, 10, 15, 20];
 
 // Map stats to include href for navigation
 const statCards = computed(() => {
@@ -93,9 +98,20 @@ const formatActionType = (type: string) => {
   return type;
 };
 
+// Handle limit change
+const handleLimitChange = (limit: number) => {
+  activityLimit.value = limit;
+  fetchActivity(limit);
+};
+
+// Scroll to top
+const scrollToTop = () => {
+  window.scrollTo({ top: 0, behavior: "smooth" });
+};
+
 // Fetch data on mount
 onMounted(async () => {
-  await Promise.all([fetchStats(), fetchActivity(5), fetchAdmins()]);
+  await Promise.all([fetchStats(), fetchActivity(activityLimit.value), fetchAdmins()]);
 });
 </script>
 
@@ -142,10 +158,28 @@ onMounted(async () => {
 
       <!-- Recent Activity Table -->
       <div class="bg-surface rounded-xl border border-border overflow-hidden">
-        <div class="p-4 md:p-6 border-b border-border">
+        <div class="p-4 md:p-6 border-b border-border flex items-center justify-between">
           <h2 class="text-lg md:text-xl font-semibold text-text">
             Recent Activity
           </h2>
+          <div class="flex items-center gap-2">
+            <select
+              :value="activityLimit"
+              class="px-3 py-2 text-sm bg-background border-2 border-border rounded-lg text-text focus:outline-none focus:border-primary hover:border-subtle transition-colors cursor-pointer"
+              @change="handleLimitChange(Number(($event.target as HTMLSelectElement).value))"
+            >
+              <option v-for="opt in activityLimitOptions" :key="opt" :value="opt">
+                {{ opt }} rows
+              </option>
+            </select>
+            <button
+              class="size-9 flex items-center justify-center rounded-lg border border-border text-subtle hover:bg-background hover:text-text transition-colors"
+              title="Refresh data"
+              @click="fetchActivity(activityLimit)"
+            >
+              <Icon name="material-symbols:refresh" class="size-4" />
+            </button>
+          </div>
         </div>
 
         <!-- Offline State (Highest Priority) -->
@@ -165,7 +199,7 @@ onMounted(async () => {
         </div>
 
         <!-- Table wrapper with horizontal scroll -->
-        <div v-else class="overflow-x-auto">
+        <AdminScrollContainer v-else>
           <table class="w-full min-w-[640px]">
             <thead class="bg-background">
               <tr>
@@ -256,7 +290,21 @@ onMounted(async () => {
           >
             <p class="text-sm text-subtle">Showing {{ activities.length }} recent activities</p>
           </div>
-        </div>
+        </AdminScrollContainer>
+      </div>
+
+      <!-- Scroll to Top -->
+      <div
+        v-if="!loadingActivity && activities.length > 0"
+        class="flex justify-center py-6"
+      >
+        <button
+          class="inline-flex items-center gap-2 px-4 py-2 text-sm text-subtle hover:text-text rounded-lg hover:bg-surface transition-colors"
+          @click="scrollToTop"
+        >
+          <Icon name="material-symbols:arrow-upward" class="size-4" />
+          Scroll to Top
+        </button>
       </div>
     </div>
   </div>

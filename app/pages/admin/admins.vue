@@ -181,13 +181,22 @@ const handleReactivate = async () => {
             {{ total }}
           </span>
         </h2>
-        <button
-          class="px-4 py-2 text-sm bg-primary text-white rounded-lg hover:bg-opacity-90 transition-colors flex items-center gap-2"
-          @click="openCreateModal"
-        >
-          <Icon name="material-symbols:add" class="size-4" />
-          Add Admin
-        </button>
+        <div class="flex items-center gap-2">
+          <button
+            class="size-9 flex items-center justify-center rounded-lg border border-border text-subtle hover:bg-background hover:text-text transition-colors"
+            title="Refresh data"
+            @click="fetchAdmins"
+          >
+            <Icon name="material-symbols:refresh" class="size-4" />
+          </button>
+          <button
+            class="px-4 py-2 text-sm bg-primary text-white rounded-lg hover:bg-opacity-90 transition-colors flex items-center gap-2"
+            @click="openCreateModal"
+          >
+            <Icon name="material-symbols:add" class="size-4" />
+            Add Admin
+          </button>
+        </div>
       </div>
 
       <!-- Offline State (Highest Priority) -->

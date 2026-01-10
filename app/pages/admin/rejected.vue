@@ -214,7 +214,7 @@ onMounted(() => {
     >
       <!-- Table header -->
       <div
-        class="p-4 md:p-6 border-b border-border flex items-center justify-between"
+        class="p-4 md:p-6 border-b border-border flex flex-col gap-4 md:flex-row md:items-center md:justify-between"
       >
         <h2
           class="text-lg font-semibold text-text flex items-center gap-3 leading-none"
@@ -226,12 +226,21 @@ onMounted(() => {
             {{ pagination.totalItems }}
           </span>
         </h2>
-        <button
-          class="px-4 py-2 text-sm bg-primary text-white rounded-lg hover:bg-opacity-90 transition-colors"
-          @click="exportRejectedCSV"
-        >
-          Export CSV
-        </button>
+        <div class="flex items-center gap-2">
+          <button
+            class="size-9 flex items-center justify-center rounded-lg border border-border text-subtle hover:bg-background hover:text-text transition-colors"
+            title="Refresh data"
+            @click="refreshData"
+          >
+            <Icon name="material-symbols:refresh" class="size-4" />
+          </button>
+          <button
+            class="px-4 py-2 text-sm bg-primary text-white rounded-lg hover:bg-opacity-90 transition-colors"
+            @click="exportRejectedCSV"
+          >
+            Export CSV
+          </button>
+        </div>
       </div>
 
       <!-- Filters -->
