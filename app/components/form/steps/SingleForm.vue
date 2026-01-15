@@ -319,10 +319,8 @@ watch(watchCity, async (newCity) => {
     <!-- Personal Information Section -->
     <div class="space-y-6">
       <div>
-        <h2 class="text-2xl font-bold text-gray-900 mb-2">
-          Personal Information
-        </h2>
-        <p class="text-gray-600">
+        <h2 class="text-2xl font-bold text mb-2">Personal Information</h2>
+        <p class="text-subtle">
           Please provide your legal identity details as they appear in official
           records.
         </p>
@@ -331,40 +329,10 @@ watch(watchCity, async (newCity) => {
       <div
         class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4"
       >
-        <!-- Title Field -->
-        <form.Field name="title" v-slot="{ field, state }">
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">
-              Title <span class="text-primary">*</span>
-            </label>
-            <select
-              :value="field.state.value"
-              @input="(e) => field.handleChange((e.target as HTMLSelectElement).value)"
-              @blur="field.handleBlur"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">Select</option>
-              <option
-                v-for="option in titleOptions"
-                :key="option.value"
-                :value="option.value"
-              >
-                {{ option.label }}
-              </option>
-            </select>
-            <p
-              v-if="state.meta.isTouched && state.meta.errors.length"
-              class="text-primary text-xs mt-1"
-            >
-              {{ getErrorMessage(state.meta.errors[0]) }}
-            </p>
-          </div>
-        </form.Field>
-
         <!-- First Name Field -->
         <form.Field name="firstName" v-slot="{ field, state }">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">
+            <label class="block text-sm font-medium text2 mb-1">
               First Name <span class="text-primary">*</span>
             </label>
             <input
@@ -373,7 +341,7 @@ watch(watchCity, async (newCity) => {
               @input="(e) => field.handleChange((e.target as HTMLInputElement).value)"
               @blur="field.handleBlur"
               placeholder="Juan"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary"
             />
             <p
               v-if="state.meta.isTouched && state.meta.errors.length"
@@ -387,7 +355,7 @@ watch(watchCity, async (newCity) => {
         <!-- Last Name Field -->
         <form.Field name="lastName" v-slot="{ field, state }">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">
+            <label class="block text-sm font-medium text2 mb-1">
               Last Name <span class="text-primary">*</span>
             </label>
             <input
@@ -396,7 +364,7 @@ watch(watchCity, async (newCity) => {
               @input="(e) => field.handleChange((e.target as HTMLInputElement).value)"
               @blur="field.handleBlur"
               placeholder="Dela Cruz"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary"
             />
             <p
               v-if="state.meta.isTouched && state.meta.errors.length"
@@ -410,7 +378,7 @@ watch(watchCity, async (newCity) => {
         <!-- Middle Name Field -->
         <form.Field name="middleName" v-slot="{ field, state }">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">
+            <label class="block text-sm font-medium text2 mb-1">
               Middle Name
             </label>
             <input
@@ -419,7 +387,27 @@ watch(watchCity, async (newCity) => {
               @input="(e) => field.handleChange((e.target as HTMLInputElement).value)"
               @blur="field.handleBlur"
               placeholder="Murillo"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary"
+            />
+            <p
+              v-if="state.meta.isTouched && state.meta.errors.length"
+              class="text-primary text-xs mt-1"
+            >
+              {{ getErrorMessage(state.meta.errors[0]) }}
+            </p>
+          </div>
+        </form.Field>
+        <!-- Suffix Field -->
+        <form.Field name="suffix" v-slot="{ field, state }">
+          <div>
+            <label class="block text-sm font-medium text2 mb-1"> Suffix </label>
+            <input
+              type="text"
+              :value="field.state.value"
+              @input="(e) => field.handleChange((e.target as HTMLInputElement).value)"
+              @blur="field.handleBlur"
+              placeholder="Jr."
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary"
             />
             <p
               v-if="state.meta.isTouched && state.meta.errors.length"
@@ -432,33 +420,10 @@ watch(watchCity, async (newCity) => {
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <!-- Suffix Field -->
-        <form.Field name="suffix" v-slot="{ field, state }">
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">
-              Suffix
-            </label>
-            <input
-              type="text"
-              :value="field.state.value"
-              @input="(e) => field.handleChange((e.target as HTMLInputElement).value)"
-              @blur="field.handleBlur"
-              placeholder="Jr."
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <p
-              v-if="state.meta.isTouched && state.meta.errors.length"
-              class="text-primary text-xs mt-1"
-            >
-              {{ getErrorMessage(state.meta.errors[0]) }}
-            </p>
-          </div>
-        </form.Field>
-
         <!-- Maiden Name Field -->
         <form.Field name="maidenName" v-slot="{ field, state }">
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">
+          <div class="sm:col-span-3">
+            <label class="block text-sm font-medium text2 mb-1">
               Maiden Name
             </label>
             <input
@@ -467,7 +432,7 @@ watch(watchCity, async (newCity) => {
               @input="(e) => field.handleChange((e.target as HTMLInputElement).value)"
               @blur="field.handleBlur"
               placeholder="(if applicable)"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary"
             />
             <p
               v-if="state.meta.isTouched && state.meta.errors.length"
@@ -480,8 +445,8 @@ watch(watchCity, async (newCity) => {
 
         <!-- Date of Birth Field -->
         <form.Field name="dateOfBirth" v-slot="{ field, state }">
-          <div class="sm:col-span-2">
-            <label class="block text-sm font-medium text-gray-700 mb-1">
+          <div class="sm:col-span-1">
+            <label class="block text-sm font-medium text2 mb-1">
               Date of Birth <span class="text-primary">*</span>
             </label>
             <input
@@ -489,7 +454,7 @@ watch(watchCity, async (newCity) => {
               :value="field.state.value"
               @input="(e) => field.handleChange((e.target as HTMLInputElement).value)"
               @blur="field.handleBlur"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary"
             />
             <p
               v-if="state.meta.isTouched && state.meta.errors.length"
@@ -504,11 +469,11 @@ watch(watchCity, async (newCity) => {
         </form.Field>
       </div>
 
-      <div class="pt-4">
+      <div class="">
         <h3
-          class="flex items-center gap-2 text-lg font-semibold text-gray-900 mb-4"
+          class="flex items-center gap-2 text-lg font-semibold text mb-4 -ml-3"
         >
-          📍 Contact & Location
+          📍Contact & Location
         </h3>
 
         <div class="space-y-4">
@@ -516,7 +481,7 @@ watch(watchCity, async (newCity) => {
             <!-- Email Field -->
             <form.Field name="email" v-slot="{ field, state }">
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">
+                <label class="block text-sm font-medium text2 mb-1">
                   Email Address <span class="text-primary">*</span>
                 </label>
                 <input
@@ -525,7 +490,7 @@ watch(watchCity, async (newCity) => {
                   @input="(e) => field.handleChange((e.target as HTMLInputElement).value)"
                   @blur="field.handleBlur"
                   placeholder="juandelacruz@gmail.com"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary"
                 />
                 <p
                   v-if="state.meta.isTouched && state.meta.errors.length"
@@ -542,7 +507,7 @@ watch(watchCity, async (newCity) => {
             <!-- Mobile Number Field -->
             <form.Field name="mobileNumber" v-slot="{ field, state }">
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">
+                <label class="block text-sm font-medium text2 mb-1">
                   Mobile Number <span class="text-primary">*</span>
                 </label>
                 <input
@@ -551,7 +516,7 @@ watch(watchCity, async (newCity) => {
                   @input="(e) => field.handleChange((e.target as HTMLInputElement).value)"
                   @blur="field.handleBlur"
                   placeholder="0917 123 4567"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary"
                 />
                 <p
                   v-if="state.meta.isTouched && state.meta.errors.length"
@@ -566,7 +531,7 @@ watch(watchCity, async (newCity) => {
           <!-- Current Address Field -->
           <form.Field name="currentAddress" v-slot="{ field, state }">
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">
+              <label class="block text-sm font-medium text2 mb-1">
                 Current Address <span class="text-primary">*</span>
               </label>
               <input
@@ -575,7 +540,7 @@ watch(watchCity, async (newCity) => {
                 @input="(e) => field.handleChange((e.target as HTMLInputElement).value)"
                 @blur="field.handleBlur"
                 placeholder="Unit, Street, Subdivision"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary"
               />
               <p
                 v-if="state.meta.isTouched && state.meta.errors.length"
@@ -590,7 +555,7 @@ watch(watchCity, async (newCity) => {
             <!-- Province Field -->
             <form.Field name="province" v-slot="{ field, state }">
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">
+                <label class="block text-sm font-medium text2 mb-1">
                   Province <span class="text-primary">*</span>
                 </label>
                 <select
@@ -602,7 +567,7 @@ watch(watchCity, async (newCity) => {
                   }"
                   @blur="field.handleBlur"
                   :disabled="loadingProvinces"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary disabled:bg-gray-100"
                 >
                   <option value="">Select Province</option>
                   <option
@@ -625,7 +590,7 @@ watch(watchCity, async (newCity) => {
             <!-- City Field -->
             <form.Field name="city" v-slot="{ field, state }">
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">
+                <label class="block text-sm font-medium text2 mb-1">
                   City <span class="text-primary">*</span>
                 </label>
                 <select
@@ -637,7 +602,7 @@ watch(watchCity, async (newCity) => {
                   }"
                   @blur="field.handleBlur"
                   :disabled="loadingCities || cities.length === 0"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary disabled:background"
                 >
                   <option value="">Select City</option>
                   <option
@@ -660,7 +625,7 @@ watch(watchCity, async (newCity) => {
             <!-- Barangay Field -->
             <form.Field name="barangay" v-slot="{ field, state }">
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">
+                <label class="block text-sm font-medium text2 mb-1">
                   Barangay <span class="text-primary">*</span>
                 </label>
                 <select
@@ -668,7 +633,7 @@ watch(watchCity, async (newCity) => {
                   @input="(e) => field.handleChange((e.target as HTMLSelectElement).value)"
                   @blur="field.handleBlur"
                   :disabled="loadingBarangays || barangays.length === 0"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary disabled:background"
                 >
                   <option value="">Select Barangay</option>
                   <option
@@ -691,7 +656,7 @@ watch(watchCity, async (newCity) => {
             <!-- Zip Code Field -->
             <form.Field name="zipCode" v-slot="{ field, state }">
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">
+                <label class="block text-sm font-medium text2 mb-1">
                   Zip Code <span class="text-primary">*</span>
                 </label>
                 <input
@@ -701,7 +666,7 @@ watch(watchCity, async (newCity) => {
                   @blur="field.handleBlur"
                   placeholder="6000"
                   maxlength="4"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary"
                 />
                 <p
                   v-if="state.meta.isTouched && state.meta.errors.length"
@@ -719,8 +684,8 @@ watch(watchCity, async (newCity) => {
     <!-- Academic Status Section -->
     <div class="space-y-6 border-t border-gray-200 pt-8">
       <div>
-        <h2 class="text-2xl font-bold text-gray-900 mb-2">Academic Status</h2>
-        <p class="text-gray-600">
+        <h2 class="text-2xl font-bold text mb-2">Academic Status</h2>
+        <p class="text-subtle">
           Please provide your academic information from UP Cebu.
         </p>
       </div>
@@ -729,7 +694,7 @@ watch(watchCity, async (newCity) => {
         <!-- Degree Program Field -->
         <form.Field name="degreeProgram" v-slot="{ field, state }">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">
+            <label class="block text-sm font-medium text2 mb-1">
               Degree Program <span class="text-primary">*</span>
             </label>
             <input
@@ -738,7 +703,7 @@ watch(watchCity, async (newCity) => {
               @input="(e) => field.handleChange((e.target as HTMLInputElement).value)"
               @blur="field.handleBlur"
               placeholder="e.g., BS Computer Science"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary"
             />
             <p
               v-if="state.meta.isTouched && state.meta.errors.length"
@@ -753,7 +718,7 @@ watch(watchCity, async (newCity) => {
           <!-- Year Graduated Field -->
           <form.Field name="yearGraduated" v-slot="{ field, state }">
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">
+              <label class="block text-sm font-medium text2 mb-1">
                 Year Graduated <span class="text-primary">*</span>
               </label>
               <input
@@ -763,7 +728,7 @@ watch(watchCity, async (newCity) => {
                 @blur="field.handleBlur"
                 placeholder="e.g. 2020"
                 maxlength="4"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary"
               />
               <p
                 v-if="state.meta.isTouched && state.meta.errors.length"
@@ -777,7 +742,7 @@ watch(watchCity, async (newCity) => {
           <!-- Student Number Field -->
           <form.Field name="studentNumber" v-slot="{ field, state }">
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">
+              <label class="block text-sm font-medium text2 mb-1">
                 Student Number
               </label>
               <input
@@ -786,7 +751,7 @@ watch(watchCity, async (newCity) => {
                 @input="(e) => field.handleChange((e.target as HTMLInputElement).value)"
                 @blur="field.handleBlur"
                 placeholder="e.g. 2016-12345 (optional)"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary"
               />
               <p
                 v-if="state.meta.isTouched && state.meta.errors.length"
@@ -803,10 +768,8 @@ watch(watchCity, async (newCity) => {
     <!-- Professional Information Section -->
     <div class="space-y-6 border-t border-gray-200 pt-8">
       <div>
-        <h2 class="text-2xl font-bold text-gray-900 mb-2">
-          Professional Information
-        </h2>
-        <p class="text-gray-600">
+        <h2 class="text-2xl font-bold text mb-2">Professional Information</h2>
+        <p class="text-subtle">
           Tell us about your current professional status (optional).
         </p>
       </div>
@@ -815,7 +778,7 @@ watch(watchCity, async (newCity) => {
         <!-- Current Employer Field -->
         <form.Field name="currentEmployer" v-slot="{ field, state }">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">
+            <label class="block text-sm font-medium text2 mb-1">
               Current Employer
             </label>
             <input
@@ -824,7 +787,7 @@ watch(watchCity, async (newCity) => {
               @input="(e) => field.handleChange((e.target as HTMLInputElement).value)"
               @blur="field.handleBlur"
               placeholder="Company Name"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary"
             />
             <p
               v-if="state.meta.isTouched && state.meta.errors.length"
@@ -839,7 +802,7 @@ watch(watchCity, async (newCity) => {
           <!-- Job Title Field -->
           <form.Field name="jobTitle" v-slot="{ field, state }">
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">
+              <label class="block text-sm font-medium text2 mb-1">
                 Job Title
               </label>
               <input
@@ -848,7 +811,7 @@ watch(watchCity, async (newCity) => {
                 @input="(e) => field.handleChange((e.target as HTMLInputElement).value)"
                 @blur="field.handleBlur"
                 placeholder="Software Engineer"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary"
               />
               <p
                 v-if="state.meta.isTouched && state.meta.errors.length"
@@ -862,7 +825,7 @@ watch(watchCity, async (newCity) => {
           <!-- Industry Field -->
           <form.Field name="industry" v-slot="{ field, state }">
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">
+              <label class="block text-sm font-medium text2 mb-1">
                 Industry
               </label>
               <input
@@ -871,7 +834,7 @@ watch(watchCity, async (newCity) => {
                 @input="(e) => field.handleChange((e.target as HTMLInputElement).value)"
                 @blur="field.handleBlur"
                 placeholder="Technology"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary"
               />
               <p
                 v-if="state.meta.isTouched && state.meta.errors.length"
@@ -886,7 +849,7 @@ watch(watchCity, async (newCity) => {
         <!-- Years of Experience -->
         <form.Field name="yearsOfExperience" v-slot="{ field, state }">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">
+            <label class="block text-sm font-medium text2 mb-1">
               Years of Professional Experience
             </label>
             <input
@@ -896,7 +859,7 @@ watch(watchCity, async (newCity) => {
               @blur="field.handleBlur"
               placeholder="e.g., 5"
               min="0"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary"
             />
             <p
               v-if="state.meta.isTouched && state.meta.errors.length"
@@ -909,9 +872,7 @@ watch(watchCity, async (newCity) => {
 
         <!-- Mentorship Program Section -->
         <div class="pt-4 border-t border-gray-200">
-          <h3
-            class="flex items-center gap-2 text-lg font-semibold text-gray-900 mb-4"
-          >
+          <h3 class="flex items-center gap-2 text-lg font-semibold text mb-4">
             🎓 Mentorship Program
           </h3>
 
@@ -924,9 +885,9 @@ watch(watchCity, async (newCity) => {
                   :checked="field.state.value"
                   @change="(e) => field.handleChange((e.target as HTMLInputElement).checked)"
                   @blur="field.handleBlur"
-                  class="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  class="mt-1 w-4 h-4 border-gray-300 rounded focus:ring-secondary"
                 />
-                <span class="text-sm text-gray-900">
+                <span class="text-sm text">
                   I am interested in joining the Mentorship Program
                 </span>
               </label>
@@ -943,15 +904,13 @@ watch(watchCity, async (newCity) => {
           <form.Subscribe v-slot="{ values }">
             <div
               v-if="values.joinMentorshipProgram"
-              class="mt-6 space-y-4 bg-purple-50 border border-purple-200 rounded-lg p-4"
+              class="mt-6 space-y-4 background border border-purple-200 rounded-lg p-4"
             >
-              <h4 class="font-semibold text-gray-900 mb-3">
-                Mentorship Preferences
-              </h4>
+              <h4 class="font-semibold text mb-3">Mentorship Preferences</h4>
 
               <!-- Mentorship Areas (Multi-select) -->
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">
+                <label class="block text-sm font-medium text2 mb-2">
                   Areas of Interest (Select all that apply)
                 </label>
                 <div class="space-y-2">
@@ -974,11 +933,9 @@ watch(watchCity, async (newCity) => {
                           : currentValue.filter((v: string) => v !== area.value);
                         field.handleChange(newValue);
                       }"
-                          class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                          class="w-4 h-4 border-gray-300 rounded focus:ring-secondary"
                         />
-                        <span class="text-sm text-gray-700">{{
-                          area.label
-                        }}</span>
+                        <span class="text-sm text2">{{ area.label }}</span>
                       </label>
                     </div>
                     <p
@@ -993,7 +950,7 @@ watch(watchCity, async (newCity) => {
 
               <!-- Industry Tracks (Multi-select) -->
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">
+                <label class="block text-sm font-medium text2 mb-2">
                   Industry Tracks (Select all that apply)
                 </label>
                 <div class="space-y-2">
@@ -1019,11 +976,9 @@ watch(watchCity, async (newCity) => {
                           : currentValue.filter((v: string) => v !== track.value);
                         field.handleChange(newValue);
                       }"
-                          class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                          class="w-4 h-4 border-gray-300 rounded focus:ring-secondary"
                         />
-                        <span class="text-sm text-gray-700">{{
-                          track.label
-                        }}</span>
+                        <span class="text-sm text2">{{ track.label }}</span>
                       </label>
                     </div>
                     <p
@@ -1040,14 +995,14 @@ watch(watchCity, async (newCity) => {
                 <!-- Mentorship Format -->
                 <form.Field name="mentorshipFormat" v-slot="{ field, state }">
                   <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                    <label class="block text-sm font-medium text2 mb-1">
                       Preferred Mentorship Format
                     </label>
                     <select
                       :value="field.state.value"
                       @input="(e) => field.handleChange((e.target as HTMLSelectElement).value)"
                       @blur="field.handleBlur"
-                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary"
                     >
                       <option value="">Select format</option>
                       <option value="one-on-one">1-on-1 Mentorship</option>
@@ -1069,7 +1024,7 @@ watch(watchCity, async (newCity) => {
                   v-slot="{ field, state }"
                 >
                   <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                    <label class="block text-sm font-medium text2 mb-1">
                       Availability (hours per month)
                     </label>
                     <input
@@ -1080,7 +1035,7 @@ watch(watchCity, async (newCity) => {
                       placeholder="e.g., 4"
                       min="1"
                       max="40"
-                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary"
                     />
                     <p class="text-sm text-gray-500 mt-1">
                       Typical commitment: 2-4 hours per month
@@ -1103,22 +1058,22 @@ watch(watchCity, async (newCity) => {
     <!-- Membership Section -->
     <div class="space-y-6 border-t border-gray-200 pt-8">
       <div>
-        <h2 class="text-2xl font-bold text-gray-900 mb-2">Membership</h2>
-        <p class="text-gray-600">Choose your payment method.</p>
+        <h2 class="text-2xl font-bold text mb-2">Membership</h2>
+        <p class="text-subtle">Choose your payment method.</p>
       </div>
 
       <div class="space-y-4">
         <!-- Payment Method Field -->
         <form.Field name="paymentMethod" v-slot="{ field, state }">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">
+            <label class="block text-sm font-medium text2 mb-1">
               Payment Method <span class="text-primary">*</span>
             </label>
             <select
               :value="field.state.value"
               @input="(e) => field.handleChange((e.target as HTMLSelectElement).value)"
               @blur="field.handleBlur"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary"
             >
               <option value="">Select payment method</option>
               <option
@@ -1141,18 +1096,13 @@ watch(watchCity, async (newCity) => {
         <!-- Wrap payment details in form.Subscribe -->
         <form.Subscribe v-slot="{ values }">
           <!-- GCash Payment Details -->
-          <div
-            v-if="values.paymentMethod === 'gcash'"
-            class="space-y-4 bg-blue-50 border border-blue-200 rounded-lg p-4"
-          >
-            <h3 class="font-semibold text-gray-900 mb-2">
-              GCash Payment Details
-            </h3>
+          <div v-if="values.paymentMethod === 'gcash'" class="space-y-4 p-4">
+            <h3 class="font-semibold text mb-2">GCash Payment Details</h3>
 
             <!-- GCash Reference Number -->
             <form.Field name="gcashReferenceNumber" v-slot="{ field, state }">
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">
+                <label class="block text-sm font-medium text2 mb-1">
                   GCash Reference Number <span class="text-primary">*</span>
                 </label>
                 <input
@@ -1161,13 +1111,13 @@ watch(watchCity, async (newCity) => {
                   @input="(e) => field.handleChange((e.target as HTMLInputElement).value)"
                   @blur="field.handleBlur"
                   placeholder="e.g. 1234567890123"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary"
                 />
                 <p
                   v-if="state.meta.isTouched && state.meta.errors.length"
                   class="text-primary text-xs mt-1"
                 >
-                  {{ state.meta.errors[0] }}
+                  {{ getErrorMessage(state.meta.errors[0]) }}
                 </p>
               </div>
             </form.Field>
@@ -1175,7 +1125,7 @@ watch(watchCity, async (newCity) => {
             <!-- GCash Proof of Payment -->
             <form.Field name="gcashProofOfPayment" v-slot="{ field, state }">
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">
+                <label class="block text-sm font-medium text2 mb-1">
                   Screenshot/Proof of Payment
                   <span class="text-primary">*</span>
                 </label>
@@ -1184,7 +1134,7 @@ watch(watchCity, async (newCity) => {
                   accept="image/*"
                   @change="(e) => field.handleChange((e.target as HTMLInputElement).files?.[0])"
                   @blur="field.handleBlur"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary"
                 />
                 <p class="text-sm text-gray-500 mt-1">
                   Upload a screenshot of your GCash transaction
@@ -1194,18 +1144,13 @@ watch(watchCity, async (newCity) => {
           </div>
 
           <!-- Bank Transfer Payment Details -->
-          <div
-            v-if="values.paymentMethod === 'bank'"
-            class="space-y-4 bg-green-50 border border-green-200 rounded-lg p-4"
-          >
-            <h3 class="font-semibold text-gray-900 mb-2">
-              Bank Transfer Details
-            </h3>
+          <div v-if="values.paymentMethod === 'bank'" class="space-y-4 p-4">
+            <h3 class="font-semibold text mb-2">Bank Transfer Details</h3>
 
             <!-- Sender Name -->
             <form.Field name="bankSenderName" v-slot="{ field, state }">
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">
+                <label class="block text-sm font-medium text2 mb-1">
                   Name of Sender/Account Holder
                   <span class="text-primary">*</span>
                 </label>
@@ -1215,13 +1160,13 @@ watch(watchCity, async (newCity) => {
                   @input="(e) => field.handleChange((e.target as HTMLInputElement).value)"
                   @blur="field.handleBlur"
                   placeholder="Juan Dela Cruz"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary"
                 />
                 <p
                   v-if="state.meta.isTouched && state.meta.errors.length"
                   class="text-primary text-xs mt-1"
                 >
-                  {{ state.meta.errors[0] }}
+                  {{ getErrorMessage(state.meta.errors[0]) }}
                 </p>
               </div>
             </form.Field>
@@ -1229,7 +1174,7 @@ watch(watchCity, async (newCity) => {
             <!-- Bank Name -->
             <form.Field name="bankName" v-slot="{ field, state }">
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">
+                <label class="block text-sm font-medium text2 mb-1">
                   Bank Name <span class="text-primary">*</span>
                 </label>
                 <input
@@ -1238,13 +1183,13 @@ watch(watchCity, async (newCity) => {
                   @input="(e) => field.handleChange((e.target as HTMLInputElement).value)"
                   @blur="field.handleBlur"
                   placeholder="e.g. BDO, BPI, Metrobank"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary"
                 />
                 <p
                   v-if="state.meta.isTouched && state.meta.errors.length"
                   class="text-primary text-xs mt-1"
                 >
-                  {{ state.meta.errors[0] }}
+                  {{ getErrorMessage(state.meta.errors[0]) }}
                 </p>
               </div>
             </form.Field>
@@ -1252,7 +1197,7 @@ watch(watchCity, async (newCity) => {
             <!-- Account Number -->
             <form.Field name="bankAccountNumber" v-slot="{ field, state }">
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">
+                <label class="block text-sm font-medium text2 mb-1">
                   Account Number (Last 4 digits)
                   <span class="text-primary">*</span>
                 </label>
@@ -1263,13 +1208,13 @@ watch(watchCity, async (newCity) => {
                   @blur="field.handleBlur"
                   placeholder="1234"
                   maxlength="4"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary"
                 />
                 <p
                   v-if="state.meta.isTouched && state.meta.errors.length"
                   class="text-primary text-xs mt-1"
                 >
-                  {{ state.meta.errors[0] }}
+                  {{ getErrorMessage(state.meta.errors[0]) }}
                 </p>
               </div>
             </form.Field>
@@ -1277,7 +1222,7 @@ watch(watchCity, async (newCity) => {
             <!-- Reference Number -->
             <form.Field name="bankReferenceNumber" v-slot="{ field, state }">
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">
+                <label class="block text-sm font-medium text2 mb-1">
                   Reference/Transaction Number
                   <span class="text-primary">*</span>
                 </label>
@@ -1287,13 +1232,13 @@ watch(watchCity, async (newCity) => {
                   @input="(e) => field.handleChange((e.target as HTMLInputElement).value)"
                   @blur="field.handleBlur"
                   placeholder="Transaction reference number"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary"
                 />
                 <p
                   v-if="state.meta.isTouched && state.meta.errors.length"
                   class="text-primary text-xs mt-1"
                 >
-                  {{ state.meta.errors[0] }}
+                  {{ getErrorMessage(state.meta.errors[0]) }}
                 </p>
               </div>
             </form.Field>
@@ -1301,7 +1246,7 @@ watch(watchCity, async (newCity) => {
             <!-- Proof of Transfer -->
             <form.Field name="bankProofOfPayment" v-slot="{ field, state }">
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">
+                <label class="block text-sm font-medium text2 mb-1">
                   Proof of Transfer <span class="text-primary">*</span>
                 </label>
                 <input
@@ -1309,7 +1254,7 @@ watch(watchCity, async (newCity) => {
                   accept="image/*,.pdf"
                   @change="(e) => field.handleChange((e.target as HTMLInputElement).files?.[0])"
                   @blur="field.handleBlur"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary"
                 />
                 <p class="text-sm text-gray-500 mt-1">
                   Upload screenshot or deposit slip
@@ -1318,25 +1263,20 @@ watch(watchCity, async (newCity) => {
                   v-if="state.meta.isTouched && state.meta.errors.length"
                   class="text-primary text-xs mt-1"
                 >
-                  {{ state.meta.errors[0] }}
+                  {{ getErrorMessage(state.meta.errors[0]) }}
                 </p>
               </div>
             </form.Field>
           </div>
 
           <!-- Cash Payment Details -->
-          <div
-            v-if="values.paymentMethod === 'cash'"
-            class="space-y-4 bg-yellow-50 border border-yellow-200 rounded-lg p-4"
-          >
-            <h3 class="font-semibold text-gray-900 mb-2">
-              Cash Payment Details
-            </h3>
+          <div v-if="values.paymentMethod === 'cash'" class="space-y-4 p-4">
+            <h3 class="font-semibold text mb-2">Cash Payment Details</h3>
 
             <!-- Date of Payment -->
             <form.Field name="cashPaymentDate" v-slot="{ field, state }">
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">
+                <label class="block text-sm font-medium text2 mb-1">
                   Date of Payment <span class="text-primary">*</span>
                 </label>
                 <input
@@ -1344,13 +1284,13 @@ watch(watchCity, async (newCity) => {
                   :value="field.state.value"
                   @input="(e) => field.handleChange((e.target as HTMLInputElement).value)"
                   @blur="field.handleBlur"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary"
                 />
                 <p
                   v-if="state.meta.isTouched && state.meta.errors.length"
                   class="text-primary text-xs mt-1"
                 >
-                  {{ state.meta.errors[0] }}
+                  {{ getErrorMessage(state.meta.errors[0]) }}
                 </p>
               </div>
             </form.Field>
@@ -1358,7 +1298,7 @@ watch(watchCity, async (newCity) => {
             <!-- Staff Member -->
             <form.Field name="cashReceivedBy" v-slot="{ field, state }">
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">
+                <label class="block text-sm font-medium text2 mb-1">
                   Name of Staff Member Who Received Payment
                   <span class="text-primary">*</span>
                 </label>
@@ -1368,13 +1308,13 @@ watch(watchCity, async (newCity) => {
                   @input="(e) => field.handleChange((e.target as HTMLInputElement).value)"
                   @blur="field.handleBlur"
                   placeholder="Staff member name"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary"
                 />
                 <p
                   v-if="state.meta.isTouched && state.meta.errors.length"
                   class="text-primary text-xs mt-1"
                 >
-                  {{ state.meta.errors[0] }}
+                  {{ getErrorMessage(state.meta.errors[0]) }}
                 </p>
               </div>
             </form.Field>
@@ -1386,41 +1326,39 @@ watch(watchCity, async (newCity) => {
     <!-- Data Privacy Section -->
     <div class="space-y-6 border-t border-gray-200 pt-8">
       <div>
-        <h2 class="text-2xl font-bold text-gray-900 mb-2">
-          Data Privacy Agreement
-        </h2>
-        <p class="text-gray-600">
+        <h2 class="text-2xl font-bold text mb-2">Data Privacy Agreement</h2>
+        <p class="text-subtle">
           Please review and accept our data privacy policy to continue.
         </p>
       </div>
 
       <div class="space-y-4">
         <div
-          class="bg-gray-50 border border-gray-300 rounded-lg p-4 max-h-60 overflow-y-auto"
+          class="bg-background border-background rounded-lg p-4 max-h-60 overflow-y-auto"
         >
-          <h3 class="font-semibold text-gray-900 mb-2">Privacy Policy</h3>
-          <p class="text-sm text-gray-600 mb-3">
+          <h3 class="font-semibold text mb-2">Privacy Policy</h3>
+          <p class="text-sm text-subtle mb-3">
             By submitting this form, you agree to the collection and processing
             of your personal information in accordance with the Data Privacy Act
             of 2012 (Republic Act No. 10173).
           </p>
-          <p class="text-sm text-gray-600 mb-3">
+          <p class="text-sm text-subtle mb-3">
             <strong>Information We Collect:</strong> We collect your personal
             details, academic records, professional information, and contact
             details for the purpose of membership registration and
             communication.
           </p>
-          <p class="text-sm text-gray-600 mb-3">
+          <p class="text-sm text-subtle mb-3">
             <strong>How We Use Your Data:</strong> Your information will be used
             solely for membership management, event notifications, alumni
             networking, and communication purposes.
           </p>
-          <p class="text-sm text-gray-600 mb-3">
+          <p class="text-sm text-subtle mb-3">
             <strong>Data Security:</strong> We implement appropriate security
             measures to protect your personal information from unauthorized
             access, disclosure, or misuse.
           </p>
-          <p class="text-sm text-gray-600">
+          <p class="text-sm text-subtle">
             <strong>Your Rights:</strong> You have the right to access, correct,
             or request deletion of your personal data at any time by contacting
             us.
@@ -1436,11 +1374,11 @@ watch(watchCity, async (newCity) => {
                 :checked="field.state.value"
                 @change="(e) => field.handleChange((e.target as HTMLInputElement).checked)"
                 @blur="field.handleBlur"
-                class="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                class="mt-1 w-4 h-4 text-secondary border-gray-300 rounded focus:ring-secondary"
               />
-              <span class="text-sm text-gray-900">
+              <span class="text-sm text">
                 I have read and agree to the
-                <a href="#" class="text-blue-600 hover:underline"
+                <a href="#" class="text-primary hover:underline"
                   >Data Privacy Policy</a
                 >
                 and consent to the collection and processing of my personal
@@ -1465,7 +1403,7 @@ watch(watchCity, async (newCity) => {
         <button
           type="submit"
           :disabled="!canSubmit || isSubmitting"
-          class="w-full bg-blue-600 text-white py-3 px-6 rounded-md font-semibold hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+          class="w-full bg-blue-600 text-white py-3 px-6 rounded-md font-semibold hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-secondary focus:ring-offset-2 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
         >
           {{ isSubmitting ? "Submitting..." : "Submit Registration" }}
         </button>

@@ -10,6 +10,7 @@
   --color-surface: var(--color-white);
   --color-border: var(--color-gray-300);
   --color-text: var(--color-gray-900);
+  --color-text2: var(--color-gray-700);
 
   --font-sans: "Inter", sans-serif;
   --font-serif: "Merriweather", serif;
@@ -107,6 +108,45 @@ html:not(.dark) {
   button:active {
     transform: scale(0.97);
   }
+}
+
+/* Calendar icon - adapts to theme automatically */
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="date"]::-moz-calendar-picker-indicator {
+  filter: var(--calendar-icon-filter);
+  cursor: pointer;
+}
+
+/* Light mode filter */
+:root {
+  --calendar-icon-filter: brightness(0) saturate(100%);
+}
+
+/* Dark mode filter */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --calendar-icon-filter: brightness(0) saturate(100%) invert(1);
+  }
+}
+
+.dark {
+  --calendar-icon-filter: brightness(0) saturate(100%) invert(1);
+}
+
+/* Select dropdowns - use color-scheme for native adaptation */
+select {
+  color-scheme: light dark;
+  accent-color: var(--color-secondary);
+}
+
+select option {
+  background-color: var(--color-surface);
+  color: var(--color-text);
+}
+
+select option:hover {
+  background-color: var(--color-secondary) !important;
+  color: white !important;
 }
 
 /* Toast styles */
