@@ -1,588 +1,1583 @@
 <script setup lang="ts">
+import { ref, watch, onMounted } from "vue";
 import { useForm } from "@tanstack/vue-form";
-import { toast } from "vue-sonner";
+import { z } from "zod";
 import {
-  personalDetailsSchema,
-  academicStatusSchema,
-  professionalSchema,
-  membershipSchema,
-  type PersonalDetailsData,
-  type AcademicStatusData,
-  type ProfessionalData,
-  type MembershipData,
-} from "~/utils/schemas";
+  MapPinIcon,
+  AcademicCapIcon,
+  DevicePhoneMobileIcon,
+  BuildingLibraryIcon,
+  BanknotesIcon,
+} from "@heroicons/vue/24/solid";
 
-const currentStep = ref(0);
-const slideDirection = ref<"forward" | "back">("forward");
-const showReviewModal = ref(false);
-const dialogRef = ref<HTMLDialogElement>();
-const isClosing = ref(false);
+const getErrorMessage = (error: any): string => {
+  if (typeof error === "string") return error;
+  if (error && typeof error === "object" && "message" in error) {
+    return error.message;
+  }
+  return String(error);
+};
 
-// Define form with TanStack Form
+interface LocationOption {
+  value: string;
+  label: string;
+  code?: string;
+}
+
+const mentorshipAreas = [
+  { value: "career-advancement", label: "Career Advancement" },
+  { value: "leadership-management", label: "Leadership & Management" },
+  { value: "business-corporate", label: "Business & Corporate Skills" },
+  { value: "finance-operations", label: "Finance & Operations" },
+  { value: "technology-innovation", label: "Technology & Innovation" },
+  { value: "hr-workplace", label: "HR & Workplace Skills" },
+  { value: "entrepreneurship", label: "Entrepreneurship" },
+  { value: "other", label: "Other" },
+];
+
+const industryTracks = [
+  { value: "it-software", label: "IT & Software" },
+  { value: "banking-finance", label: "Banking & Finance" },
+  { value: "marketing-advertising", label: "Marketing & Advertising" },
+  { value: "engineering", label: "Engineering" },
+  { value: "healthcare", label: "Healthcare" },
+  { value: "real-estate", label: "Real Estate" },
+  { value: "supply-chain", label: "Supply Chain" },
+  { value: "government-public", label: "Government / Public Sector" },
+  { value: "other", label: "Other" },
+];
+
+// Zod validation schema
+const formSchema = z
+  .object({
+    // Personal Details
+    firstName: z.string().min(2, "This field is required"),
+    lastName: z.string().min(2, "This field is required"),
+    middleName: z.string().optional(),
+    suffix: z.string().optional(),
+    maidenName: z.string().optional(),
+    dateOfBirth: z.string().min(1, "Date of birth is required"),
+    email: z.string().email("Invalid email address"),
+    mobileNumber: z
+      .string()
+      .regex(/^(09|\+639)\d{9}$/, "Invalid mobile number"),
+    currentAddress: z.string().min(5, "This field is required"),
+    province: z.string().min(1, "Province is required"),
+    city: z.string().min(1, "City is required"),
+    barangay: z.string().min(1, "Barangay is required"),
+    zipCode: z.string().regex(/^\d{4}$/, "Zip code must be 4 digits"),
+    // Academic Status
+    degreeProgram: z.string().min(2, "Degree program is required"),
+    yearGraduated: z
+      .string()
+      .regex(/^\d{4}$/, "Invalid year")
+      .refine(
+        (year) => {
+          const y = parseInt(year);
+          return y >= 1970 && y <= new Date().getFullYear();
+        },
+        { message: "Year must be between 1970 and current year" }
+      ),
+    studentNumber: z.string().optional(),
+    // Professional
+    currentEmployer: z.string().optional(),
+    jobTitle: z.string().optional(),
+    industry: z.string().optional(),
+    yearsOfExperience: z.string().optional(),
+    // Mentorship Program
+    joinMentorshipProgram: z.boolean().optional(),
+    mentorshipAreas: z.array(z.string()).optional(),
+    mentorshipAreasOther: z.string().optional(),
+    mentorshipIndustryTracks: z.array(z.string()).optional(),
+    mentorshipIndustryTracksOther: z.string().optional(),
+    mentorshipFormat: z.string().optional(),
+    mentorshipAvailability: z.string().optional(),
+    // Membership
+    paymentMethod: z.string().min(1, "This field is required"),
+    //GCash Fields
+    gcashReferenceNumber: z.string().optional(),
+    gcashProofOfPayment: z.any().optional(),
+    // Bank Transfer fields
+    bankSenderName: z.string().optional(),
+    bankName: z.string().optional(),
+    bankAccountNumber: z.string().optional(),
+    bankReferenceNumber: z.string().optional(),
+    bankProofOfPayment: z.any().optional(),
+    // Cash fields
+    cashPaymentDate: z.string().optional(),
+    cashReceivedBy: z.string().optional(),
+    // Data Privacy
+    dataPrivacyConsent: z.boolean().refine((val) => val === true, {
+      message: "You must accept the data privacy policy",
+    }),
+  })
+  .superRefine((data, ctx) => {
+    // Conditional validation based on payment method
+    if (data.paymentMethod === "gcash") {
+      if (!data.gcashReferenceNumber) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Reference number is required",
+          path: ["gcashReferenceNumber"],
+        });
+      }
+      if (!data.gcashProofOfPayment) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Proof of payment is required",
+          path: ["gcashProofOfPayment"],
+        });
+      }
+    }
+
+    if (data.paymentMethod === "bank") {
+      if (!data.bankSenderName) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Sender name is required",
+          path: ["bankSenderName"],
+        });
+      }
+      if (!data.bankName) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Bank name is required",
+          path: ["bankName"],
+        });
+      }
+      if (!data.bankAccountNumber) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Account number is required",
+          path: ["bankAccountNumber"],
+        });
+      }
+      if (!data.bankReferenceNumber) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Reference number is required",
+          path: ["bankReferenceNumber"],
+        });
+      }
+      if (!data.bankProofOfPayment) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Proof of payment is required",
+          path: ["bankProofOfPayment"],
+        });
+      }
+    }
+
+    if (data.paymentMethod === "cash") {
+      if (!data.cashPaymentDate) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Payment date is required",
+          path: ["cashPaymentDate"],
+        });
+      }
+      if (!data.cashReceivedBy) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Staff member name is required",
+          path: ["cashReceivedBy"],
+        });
+      }
+    }
+  });
+
+type FormData = z.infer<typeof formSchema>;
+
+const paymentOptions = [
+  { value: "gcash", label: "GCash" },
+  { value: "bank", label: "Bank Transfer" },
+  { value: "cash", label: "Cash" },
+];
+
+// Location data from API
+const provinces = ref<LocationOption[]>([]);
+const cities = ref<LocationOption[]>([]);
+const barangays = ref<LocationOption[]>([]);
+
+const loadingProvinces = ref(false);
+const loadingCities = ref(false);
+const loadingBarangays = ref(false);
+
+// Initialize TanStack Form
 const form = useForm({
   defaultValues: {
-    personalDetails: {
-      title: "",
-      firstName: "",
-      lastName: "",
-      suffix: "",
-      maidenName: "",
-      dateOfBirth: "",
-      email: "",
-      mobileNumber: "",
-      currentAddress: "",
-      province: "",
-      city: "",
-      barangay: "",
-    } as PersonalDetailsData,
-    academicStatus: {
-      degreeProgram: "",
-      yearGraduated: "",
-      studentNumber: "",
-    } as AcademicStatusData,
-    professional: {
-      currentEmployer: "",
-      jobTitle: "",
-      industry: "",
-    } as ProfessionalData,
-    membership: {
-      paymentMethod: "",
-    } as MembershipData,
+    firstName: "",
+    lastName: "",
+    middleName: "",
+    suffix: "",
+    maidenName: "",
+    dateOfBirth: "",
+    email: "",
+    mobileNumber: "",
+    currentAddress: "",
+    province: "",
+    city: "",
+    barangay: "",
+    zipCode: "",
+    degreeProgram: "",
+    yearGraduated: "",
+    studentNumber: "",
+    currentEmployer: "",
+    jobTitle: "",
+    industry: "",
+    yearsOfExperience: "",
+    // Mentorship
+    joinMentorshipProgram: false,
+    mentorshipAreas: [],
+    mentorshipAreasOther: "",
+    mentorshipIndustryTracks: [],
+    mentorshipIndustryTracksOther: "",
+    mentorshipFormat: "",
+    mentorshipAvailability: "",
+    membershipType: "",
+    paymentMethod: "",
+    // GCash
+    gcashReferenceNumber: "",
+    gcashProofOfPayment: null,
+    // Bank
+    bankSenderName: "",
+    bankName: "",
+    bankAccountNumber: "",
+    bankReferenceNumber: "",
+    bankProofOfPayment: null,
+    // Cash
+    cashPaymentDate: "",
+    cashReceivedBy: "",
+    dataPrivacyConsent: false,
+  } as FormData,
+  validators: {
+    onChange: formSchema,
   },
   onSubmit: async ({ value }) => {
     console.log("Form submitted:", value);
-    closeReviewModal();
-    // Navigate to success page
-    await navigateTo("/success");
+    // Handle form submission here
+    alert("Form submitted successfully! Check console for data.");
   },
 });
 
-const openReviewModal = async () => {
-  if (isCurrentStepValid.value) {
-    showReviewModal.value = true;
-    await nextTick();
-    dialogRef.value?.showModal();
-  } else {
-    await triggerStepValidation();
+// Fetch provinces on mount
+onMounted(async () => {
+  try {
+    loadingProvinces.value = true;
+    const response = await fetch("https://psgc.gitlab.io/api/provinces/");
+    const data = await response.json();
+
+    provinces.value = data
+      .map((item: any) => ({
+        value: item.code,
+        label: item.name,
+        code: item.code,
+      }))
+      .sort((a: LocationOption, b: LocationOption) =>
+        a.label.localeCompare(b.label)
+      );
+  } catch (error) {
+    console.error("Error fetching provinces:", error);
+  } finally {
+    loadingProvinces.value = false;
   }
-};
-
-const closeReviewModal = () => {
-  isClosing.value = true;
-  setTimeout(() => {
-    dialogRef.value?.close();
-    showReviewModal.value = false;
-    isClosing.value = false;
-  }, 120); // Match animation duration
-};
-
-// Step validation schemas
-const stepSchemas = [
-  personalDetailsSchema,
-  academicStatusSchema,
-  professionalSchema,
-  membershipSchema,
-] as const;
-
-// Step field prefixes
-const stepPrefixes = [
-  "personalDetails",
-  "academicStatus",
-  "professional",
-  "membership",
-] as const;
-
-// Check if current step is valid using form.useStore for reactivity
-const formValues = form.useStore((state) => state.values);
-
-const isCurrentStepValid = computed(() => {
-  const currentPrefix = stepPrefixes[currentStep.value];
-  const currentSchema = stepSchemas[currentStep.value];
-
-  if (!currentPrefix || !currentSchema) return false;
-
-  const stepData = formValues.value[currentPrefix];
-  const result = currentSchema.safeParse(stepData);
-
-  return result.success;
 });
 
-// Track if user attempted to proceed (for showing validation errors)
-const attemptedNextStep = ref(false);
-
-// Step names for toast messages
-const stepNames = [
-  "Personal Details",
-  "Academic Status",
-  "Professional Information",
-  "Membership",
-];
-
-const triggerStepValidation = async () => {
-  // Trigger blur on all fields to show validation errors
-  attemptedNextStep.value = true;
-
-  // Use form.validate to trigger all field validations
-  await form.validate("blur");
-
-  // Count errors in current step
-  const currentPrefix = stepPrefixes[currentStep.value];
-  const currentSchema = stepSchemas[currentStep.value];
-
-  if (currentPrefix && currentSchema) {
-    const stepData = formValues.value[currentPrefix];
-    const result = currentSchema.safeParse(stepData);
-    console.log("Validation result:", result); // Debug log
-    if (!result.success) {
-      const errorCount = result.error.issues.length;
-      console.log("Showing error toast with", errorCount, "errors"); // Debug log
-      toast.error("Please complete all required fields", {
-        description: `${errorCount} field${errorCount > 1 ? "s" : ""} in ${
-          stepNames[currentStep.value]
-        } need${errorCount === 1 ? "s" : ""} your attention.`,
-      });
-    }
+// Watch province changes to fetch cities
+const watchProvince = ref("");
+watch(watchProvince, async (newProvince) => {
+  if (!newProvince) {
+    cities.value = [];
+    barangays.value = [];
+    form.setFieldValue("city", "");
+    form.setFieldValue("barangay", "");
+    return;
   }
 
-  // Scroll to first error field after a short delay to let DOM update
-  await nextTick();
-  const firstErrorElement = document.querySelector(".border-red-500");
-  if (firstErrorElement) {
-    firstErrorElement.scrollIntoView({ behavior: "smooth", block: "center" });
-    // Focus the input for better UX
-    const input = firstErrorElement.querySelector(
-      "input, select"
-    ) as HTMLElement;
-    if (input) input.focus();
-  }
-};
+  try {
+    loadingCities.value = true;
+    const response = await fetch(
+      `https://psgc.gitlab.io/api/provinces/${newProvince}/cities-municipalities/`
+    );
+    const data = await response.json();
 
-const nextStep = async () => {
-  if (currentStep.value < 3) {
-    if (isCurrentStepValid.value) {
-      attemptedNextStep.value = false;
-      slideDirection.value = "forward";
-      currentStep.value++;
-      nextTick(() => {
-        window.scrollTo({ top: 0, behavior: "smooth" });
-      });
-    } else {
-      // Trigger validation and scroll to errors
-      await triggerStepValidation();
-    }
+    cities.value = data
+      .map((item: any) => ({
+        value: item.code,
+        label: item.name,
+        code: item.code,
+      }))
+      .sort((a: LocationOption, b: LocationOption) =>
+        a.label.localeCompare(b.label)
+      );
+  } catch (error) {
+    console.error("Error fetching cities:", error);
+    cities.value = [];
+  } finally {
+    loadingCities.value = false;
   }
-};
+});
 
-const previousStep = () => {
-  if (currentStep.value > 0) {
-    slideDirection.value = "back";
-    currentStep.value--;
-    nextTick(() => {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    });
+// Watch city changes to fetch barangays
+const watchCity = ref("");
+watch(watchCity, async (newCity) => {
+  if (!newCity) {
+    barangays.value = [];
+    form.setFieldValue("barangay", "");
+    return;
   }
-};
+
+  try {
+    loadingBarangays.value = true;
+    const response = await fetch(
+      `https://psgc.gitlab.io/api/cities-municipalities/${newCity}/barangays/`
+    );
+    const data = await response.json();
+
+    barangays.value = data
+      .map((item: any) => ({
+        value: item.code,
+        label: item.name,
+        code: item.code,
+      }))
+      .sort((a: LocationOption, b: LocationOption) =>
+        a.label.localeCompare(b.label)
+      );
+  } catch (error) {
+    console.error("Error fetching barangays:", error);
+    barangays.value = [];
+  } finally {
+    loadingBarangays.value = false;
+  }
+});
 </script>
 
 <template>
-  <div class="grid grid-cols-1 lg:grid-cols-12 gap-0 lg:gap-8 items-start">
-    <!-- Sidebar with steps -->
-    <aside
-      class="w-full lg:col-span-3 pb-4 lg:pb-0 mb-4 lg:mb-0 border-b lg:border-b-0 border-border"
-    >
-      <div class="w-full px-0 py-2 md:p-6 lg:sticky lg:top-8">
-        <div
-          class="flex lg:flex-col flex-row flex-wrap lg:flex-nowrap justify-evenly lg:justify-start items-center lg:items-start gap-2 lg:gap-0 lg:space-y-0 px-0 lg:px-2"
-        >
-          <FormStepIndicator
-            step-label="STEP 01"
-            title="Personal Details"
-            icon="material-symbols:person"
-            :is-active="currentStep === 0"
-            :is-completed="currentStep > 0"
-            :is-last="false"
-          />
-          <FormStepIndicator
-            step-label="STEP 02"
-            title="Academic Status"
-            icon="material-symbols:school"
-            :is-active="currentStep === 1"
-            :is-completed="currentStep > 1"
-            :is-last="false"
-          />
-          <FormStepIndicator
-            step-label="STEP 03"
-            title="Professional"
-            icon="material-symbols:work"
-            :is-active="currentStep === 2"
-            :is-completed="currentStep > 2"
-            :is-last="false"
-          />
-          <FormStepIndicator
-            step-label="STEP 04"
-            title="Membership"
-            icon="material-symbols:badge"
-            :is-active="currentStep === 3"
-            :is-completed="currentStep > 3"
-            :is-last="true"
-          />
-        </div>
+  <form
+    @submit="
+      (e) => {
+        e.preventDefault();
+        form.handleSubmit();
+      }
+    "
+    class="space-y-8 p-1"
+  >
+    <!-- Personal Information Section -->
+    <div class="space-y-6">
+      <div>
+        <h2 class="text-2xl font-bold text mb-2">Personal Information</h2>
+        <p class="text-subtle">
+          Please provide your legal identity details as they appear in official
+          records.
+        </p>
       </div>
-    </aside>
 
-    <!-- Main form area -->
-    <main class="lg:col-span-9 h-fit">
       <div
-        class="lg:bg-surface lg:rounded-2xl lg:border lg:border-border p-0 md:p-8 h-fit"
+        class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4"
       >
-        <form @submit.prevent.stop="form.handleSubmit">
-          <Transition
-            :name="slideDirection === 'forward' ? 'slide-left' : 'slide-right'"
-            mode="out-in"
-          >
-            <FormStepsPersonalDetailsStep
-              v-if="currentStep === 0"
-              :form="form"
+        <!-- First Name Field -->
+        <form.Field name="firstName" v-slot="{ field, state }">
+          <div>
+            <label class="block text-sm font-medium text2 mb-1">
+              First Name <span class="text-primary">*</span>
+            </label>
+            <input
+              type="text"
+              :value="field.state.value"
+              @input="(e) => field.handleChange((e.target as HTMLInputElement).value)"
+              @blur="field.handleBlur"
+              placeholder="Juan"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary"
             />
-            <FormStepsAcademicStatusStep
-              v-else-if="currentStep === 1"
-              :form="form"
-            />
-            <FormStepsProfessionalStep
-              v-else-if="currentStep === 2"
-              :form="form"
-            />
-            <FormStepsMembershipStep
-              v-else-if="currentStep === 3"
-              :form="form"
-            />
-          </Transition>
-
-          <div
-            class="flex justify-between items-center mt-8 pt-6 border-t border-border"
-          >
-            <button
-              v-if="currentStep > 0"
-              type="button"
-              class="px-4 py-2 md:px-5 md:py-2.5 text-sm md:text-base rounded-lg border border-border text-text hover:bg-background transition-colors font-medium"
-              @click="previousStep"
+            <p
+              v-if="state.meta.isTouched && state.meta.errors.length"
+              class="text-primary text-xs mt-1"
             >
-              Previous
-            </button>
-            <div v-else />
+              {{ getErrorMessage(state.meta.errors[0]) }}
+            </p>
+          </div>
+        </form.Field>
 
-            <button
-              v-if="currentStep < 3"
-              type="button"
-              class="px-4 py-2 md:px-5 md:py-2.5 text-sm md:text-base rounded-xl bg-primary text-white transition-colors flex items-center gap-2 font-medium group"
-              @click="nextStep"
+        <!-- Last Name Field -->
+        <form.Field name="lastName" v-slot="{ field, state }">
+          <div>
+            <label class="block text-sm font-medium text2 mb-1">
+              Last Name <span class="text-primary">*</span>
+            </label>
+            <input
+              type="text"
+              :value="field.state.value"
+              @input="(e) => field.handleChange((e.target as HTMLInputElement).value)"
+              @blur="field.handleBlur"
+              placeholder="Dela Cruz"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary"
+            />
+            <p
+              v-if="state.meta.isTouched && state.meta.errors.length"
+              class="text-primary text-xs mt-1"
             >
-              Next Step
-              <svg
-                class="size-4 md:size-5"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <path
-                  d="M5 12h14"
-                  class="opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                />
-                <path
-                  d="M13 6l6 6-6 6"
-                  class="transition-transform duration-200 group-hover:translate-x-0 -translate-x-1.5"
-                />
-              </svg>
-            </button>
+              {{ getErrorMessage(state.meta.errors[0]) }}
+            </p>
+          </div>
+        </form.Field>
 
-            <form.Subscribe v-else>
-              <template #default="{ isSubmitting }">
-                <button
-                  type="button"
-                  class="px-4 py-2 md:px-5 md:py-2.5 text-sm md:text-base rounded-xl bg-primary text-white transition-colors flex items-center gap-2 font-medium group"
-                  :disabled="isSubmitting"
-                  @click="openReviewModal"
+        <!-- Middle Name Field -->
+        <form.Field name="middleName" v-slot="{ field, state }">
+          <div>
+            <label class="block text-sm font-medium text2 mb-1">
+              Middle Name
+            </label>
+            <input
+              type="text"
+              :value="field.state.value"
+              @input="(e) => field.handleChange((e.target as HTMLInputElement).value)"
+              @blur="field.handleBlur"
+              placeholder="Murillo"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary"
+            />
+            <p
+              v-if="state.meta.isTouched && state.meta.errors.length"
+              class="text-primary text-xs mt-1"
+            >
+              {{ getErrorMessage(state.meta.errors[0]) }}
+            </p>
+          </div>
+        </form.Field>
+        <!-- Suffix Field -->
+        <form.Field name="suffix" v-slot="{ field, state }">
+          <div>
+            <label class="block text-sm font-medium text2 mb-1"> Suffix </label>
+            <input
+              type="text"
+              :value="field.state.value"
+              @input="(e) => field.handleChange((e.target as HTMLInputElement).value)"
+              @blur="field.handleBlur"
+              placeholder="Jr."
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary"
+            />
+            <p
+              v-if="state.meta.isTouched && state.meta.errors.length"
+              class="text-primary text-xs mt-1"
+            >
+              {{ getErrorMessage(state.meta.errors[0]) }}
+            </p>
+          </div>
+        </form.Field>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Maiden Name Field -->
+        <form.Field name="maidenName" v-slot="{ field, state }">
+          <div class="sm:col-span-3">
+            <label class="block text-sm font-medium text2 mb-1">
+              Maiden Name
+            </label>
+            <input
+              type="text"
+              :value="field.state.value"
+              @input="(e) => field.handleChange((e.target as HTMLInputElement).value)"
+              @blur="field.handleBlur"
+              placeholder="(if applicable)"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary"
+            />
+            <p
+              v-if="state.meta.isTouched && state.meta.errors.length"
+              class="text-primary text-xs mt-1"
+            >
+              {{ getErrorMessage(state.meta.errors[0]) }}
+            </p>
+          </div>
+        </form.Field>
+
+        <!-- Date of Birth Field -->
+        <form.Field name="dateOfBirth" v-slot="{ field, state }">
+          <div class="sm:col-span-1">
+            <label class="block text-sm font-medium text2 mb-1">
+              Date of Birth <span class="text-primary">*</span>
+            </label>
+            <input
+              type="date"
+              :value="field.state.value"
+              @input="(e) => field.handleChange((e.target as HTMLInputElement).value)"
+              @blur="field.handleBlur"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary"
+            />
+            <p
+              v-if="state.meta.isTouched && state.meta.errors.length"
+              class="text-primary text-xs mt-1"
+            >
+              {{ getErrorMessage(state.meta.errors[0]) }}
+            </p>
+            <p class="text-sm text-gray-500 mt-1">
+              For verifying school records
+            </p>
+          </div>
+        </form.Field>
+      </div>
+
+      <div class="">
+        <h3 class="flex items-center gap-2 text-lg font-semibold text mb-4">
+          <MapPinIcon class="w-5 h-5 text-primary -mr-1.5 mb-0.5" />Contact &
+          Location
+        </h3>
+
+        <div class="space-y-4">
+          <div class="grid grid-cols-2 sm:grid-cols-2 gap-4">
+            <!-- Email Field -->
+            <form.Field name="email" v-slot="{ field, state }">
+              <div>
+                <label class="block text-sm font-medium text2 mb-1">
+                  Email Address <span class="text-primary">*</span>
+                </label>
+                <input
+                  type="email"
+                  :value="field.state.value"
+                  @input="(e) => field.handleChange((e.target as HTMLInputElement).value)"
+                  @blur="field.handleBlur"
+                  placeholder="juandelacruz@gmail.com"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary"
+                />
+                <p
+                  v-if="state.meta.isTouched && state.meta.errors.length"
+                  class="text-primary text-xs mt-1"
                 >
-                  Review & Submit
-                  <Icon
-                    name="material-symbols:visibility"
-                    class="size-4 md:size-5"
-                  />
-                </button>
-              </template>
-            </form.Subscribe>
+                  {{ getErrorMessage(state.meta.errors[0]) }}
+                </p>
+                <p class="text-sm text-gray-500 mt-1">
+                  Please avoid using your up.edu.ph email.
+                </p>
+              </div>
+            </form.Field>
+
+            <!-- Mobile Number Field -->
+            <form.Field name="mobileNumber" v-slot="{ field, state }">
+              <div>
+                <label class="block text-sm font-medium text2 mb-1">
+                  Mobile Number <span class="text-primary">*</span>
+                </label>
+                <input
+                  type="tel"
+                  :value="field.state.value"
+                  @input="(e) => field.handleChange((e.target as HTMLInputElement).value)"
+                  @blur="field.handleBlur"
+                  placeholder="0917 123 4567"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary"
+                />
+                <p
+                  v-if="state.meta.isTouched && state.meta.errors.length"
+                  class="text-primary text-xs mt-1"
+                >
+                  {{ getErrorMessage(state.meta.errors[0]) }}
+                </p>
+              </div>
+            </form.Field>
           </div>
-        </form>
+
+          <!-- Current Address Field -->
+          <form.Field name="currentAddress" v-slot="{ field, state }">
+            <div>
+              <label class="block text-sm font-medium text2 mb-1">
+                Current Address <span class="text-primary">*</span>
+              </label>
+              <input
+                type="text"
+                :value="field.state.value"
+                @input="(e) => field.handleChange((e.target as HTMLInputElement).value)"
+                @blur="field.handleBlur"
+                placeholder="Unit, Street, Subdivision"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary"
+              />
+              <p
+                v-if="state.meta.isTouched && state.meta.errors.length"
+                class="text-primary text-xs mt-1"
+              >
+                {{ getErrorMessage(state.meta.errors[0]) }}
+              </p>
+            </div>
+          </form.Field>
+
+          <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <!-- Province Field -->
+            <form.Field name="province" v-slot="{ field, state }">
+              <div>
+                <label class="block text-sm font-medium text2 mb-1">
+                  Province <span class="text-primary">*</span>
+                </label>
+                <select
+                  :value="field.state.value"
+                  @input="(e) => {
+                    const val = (e.target as HTMLSelectElement).value;
+                    field.handleChange(val);
+                    watchProvince = val;
+                  }"
+                  @blur="field.handleBlur"
+                  :disabled="loadingProvinces"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary disabled:bg-gray-100"
+                >
+                  <option value="">Select Province</option>
+                  <option
+                    v-for="option in provinces"
+                    :key="option.value"
+                    :value="option.value"
+                  >
+                    {{ option.label }}
+                  </option>
+                </select>
+                <p
+                  v-if="state.meta.isTouched && state.meta.errors.length"
+                  class="text-primary text-xs mt-1"
+                >
+                  {{ getErrorMessage(state.meta.errors[0]) }}
+                </p>
+              </div>
+            </form.Field>
+
+            <!-- City Field -->
+            <form.Field name="city" v-slot="{ field, state }">
+              <div>
+                <label class="block text-sm font-medium text2 mb-1">
+                  City <span class="text-primary">*</span>
+                </label>
+                <select
+                  :value="field.state.value"
+                  @input="(e) => {
+                    const val = (e.target as HTMLSelectElement).value;
+                    field.handleChange(val);
+                    watchCity = val;
+                  }"
+                  @blur="field.handleBlur"
+                  :disabled="loadingCities || cities.length === 0"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary disabled:background"
+                >
+                  <option value="">Select City</option>
+                  <option
+                    v-for="option in cities"
+                    :key="option.value"
+                    :value="option.value"
+                  >
+                    {{ option.label }}
+                  </option>
+                </select>
+                <p
+                  v-if="state.meta.isTouched && state.meta.errors.length"
+                  class="text-primary text-xs mt-1"
+                >
+                  {{ getErrorMessage(state.meta.errors[0]) }}
+                </p>
+              </div>
+            </form.Field>
+
+            <!-- Barangay Field -->
+            <form.Field name="barangay" v-slot="{ field, state }">
+              <div>
+                <label class="block text-sm font-medium text2 mb-1">
+                  Barangay <span class="text-primary">*</span>
+                </label>
+                <select
+                  :value="field.state.value"
+                  @input="(e) => field.handleChange((e.target as HTMLSelectElement).value)"
+                  @blur="field.handleBlur"
+                  :disabled="loadingBarangays || barangays.length === 0"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary disabled:background"
+                >
+                  <option value="">Select Barangay</option>
+                  <option
+                    v-for="option in barangays"
+                    :key="option.value"
+                    :value="option.value"
+                  >
+                    {{ option.label }}
+                  </option>
+                </select>
+                <p
+                  v-if="state.meta.isTouched && state.meta.errors.length"
+                  class="text-primary text-xs mt-1"
+                >
+                  {{ getErrorMessage(state.meta.errors[0]) }}
+                </p>
+              </div>
+            </form.Field>
+
+            <!-- Zip Code Field -->
+            <form.Field name="zipCode" v-slot="{ field, state }">
+              <div>
+                <label class="block text-sm font-medium text2 mb-1">
+                  Zip Code <span class="text-primary">*</span>
+                </label>
+                <input
+                  type="text"
+                  :value="field.state.value"
+                  @input="(e) => field.handleChange((e.target as HTMLInputElement).value)"
+                  @blur="field.handleBlur"
+                  placeholder="6000"
+                  maxlength="4"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary"
+                />
+                <p
+                  v-if="state.meta.isTouched && state.meta.errors.length"
+                  class="text-primary text-xs mt-1"
+                >
+                  {{ getErrorMessage(state.meta.errors[0]) }}
+                </p>
+              </div>
+            </form.Field>
+          </div>
+        </div>
       </div>
-    </main>
-  </div>
+    </div>
 
-  <!-- Review Modal -->
-  <Teleport to="body">
-    <dialog
-      v-if="showReviewModal"
-      ref="dialogRef"
-      :class="[
-        'modal-dialog bg-surface rounded-2xl border border-border shadow-2xl w-full max-w-2xl max-h-[85vh] overflow-hidden flex flex-col p-0 backdrop:bg-black/50',
-        { 'modal-closing': isClosing },
-      ]"
-      @close="closeReviewModal"
-    >
-      <!-- Header -->
-      <div
-        class="flex items-center justify-between p-6 border-b border-border shrink-0"
-      >
-        <h2 class="text-xl font-bold text-text">Review Your Information</h2>
-        <button
-          type="button"
-          class="size-9 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors flex items-center justify-center text-gray-600 dark:text-gray-300"
-          @click="closeReviewModal"
-        >
-          <Icon name="material-symbols:close" class="size-5" />
-        </button>
+    <!-- Academic Status Section -->
+    <div class="space-y-6 border-t border-gray-200 pt-8">
+      <div>
+        <h2 class="text-2xl font-bold text mb-2">Academic Status</h2>
+        <p class="text-subtle">
+          Please provide your academic information from UP Cebu.
+        </p>
       </div>
 
-      <!-- Body -->
-      <div class="p-6 overflow-y-auto flex-1 space-y-6">
-        <!-- Personal Details -->
-        <div>
-          <h3
-            class="text-sm font-semibold text-primary uppercase tracking-wide mb-3 flex items-center gap-2"
-          >
-            <Icon name="material-symbols:person" class="size-4" />
-            Personal Details
-          </h3>
-          <div class="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-            <div class="text-subtle">Title</div>
-            <div class="text-text font-medium">
-              {{ formValues.personalDetails.title || "—" }}
-            </div>
-            <div class="text-subtle">First Name</div>
-            <div class="text-text font-medium">
-              {{ formValues.personalDetails.firstName || "—" }}
-            </div>
-            <div class="text-subtle">Last Name</div>
-            <div class="text-text font-medium">
-              {{ formValues.personalDetails.lastName || "—" }}
-            </div>
-            <div class="text-subtle">Suffix</div>
-            <div class="text-text font-medium">
-              {{ formValues.personalDetails.suffix || "—" }}
-            </div>
-            <div class="text-subtle">Maiden Name</div>
-            <div class="text-text font-medium">
-              {{ formValues.personalDetails.maidenName || "—" }}
-            </div>
-            <div class="text-subtle">Date of Birth</div>
-            <div class="text-text font-medium">
-              {{ formValues.personalDetails.dateOfBirth || "—" }}
-            </div>
-            <div class="text-subtle">Email</div>
-            <div class="text-text font-medium">
-              {{ formValues.personalDetails.email || "—" }}
-            </div>
-            <div class="text-subtle">Mobile Number</div>
-            <div class="text-text font-medium">
-              {{ formValues.personalDetails.mobileNumber || "—" }}
-            </div>
-            <div class="text-subtle">Current Address</div>
-            <div class="text-text font-medium">
-              {{ formValues.personalDetails.currentAddress || "—" }}
-            </div>
-            <div class="text-subtle">Province</div>
-            <div class="text-text font-medium">
-              {{ formValues.personalDetails.province || "—" }}
-            </div>
-            <div class="text-subtle">City</div>
-            <div class="text-text font-medium">
-              {{ formValues.personalDetails.city || "—" }}
-            </div>
-            <div class="text-subtle">Barangay</div>
-            <div class="text-text font-medium">
-              {{ formValues.personalDetails.barangay || "—" }}
-            </div>
-          </div>
-        </div>
-
-        <!-- Academic Status -->
-        <div>
-          <h3
-            class="text-sm font-semibold text-primary uppercase tracking-wide mb-3 flex items-center gap-2"
-          >
-            <Icon name="material-symbols:school" class="size-4" />
-            Academic Status
-          </h3>
-          <div class="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-            <div class="text-subtle">Degree Program</div>
-            <div class="text-text font-medium">
-              {{ formValues.academicStatus.degreeProgram || "—" }}
-            </div>
-            <div class="text-subtle">Year Graduated</div>
-            <div class="text-text font-medium">
-              {{ formValues.academicStatus.yearGraduated || "—" }}
-            </div>
-            <div class="text-subtle">Student Number</div>
-            <div class="text-text font-medium">
-              {{ formValues.academicStatus.studentNumber || "—" }}
-            </div>
-          </div>
-        </div>
-
-        <!-- Professional -->
-        <div>
-          <h3
-            class="text-sm font-semibold text-primary uppercase tracking-wide mb-3 flex items-center gap-2"
-          >
-            <Icon name="material-symbols:work" class="size-4" />
-            Professional
-          </h3>
-          <div class="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-            <div class="text-subtle">Current Employer</div>
-            <div class="text-text font-medium">
-              {{ formValues.professional.currentEmployer || "—" }}
-            </div>
-            <div class="text-subtle">Job Title</div>
-            <div class="text-text font-medium">
-              {{ formValues.professional.jobTitle || "—" }}
-            </div>
-            <div class="text-subtle">Industry</div>
-            <div class="text-text font-medium">
-              {{ formValues.professional.industry || "—" }}
-            </div>
-          </div>
-        </div>
-
-        <!-- Membership -->
-        <div>
-          <h3
-            class="text-sm font-semibold text-primary uppercase tracking-wide mb-3 flex items-center gap-2"
-          >
-            <Icon name="material-symbols:badge" class="size-4" />
-            Membership
-          </h3>
-          <div class="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-            <div class="text-subtle">Membership</div>
-            <div class="text-text font-medium">
-              Lifetime - ₱5,000
-            </div>
-            <div class="text-subtle">Payment Method</div>
-            <div class="text-text font-medium">
-              {{ formValues.membership.paymentMethod || "—" }}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Footer -->
-      <div
-        class="flex items-center justify-end gap-3 p-6 border-t border-border shrink-0 bg-background/50"
-      >
-        <button
-          type="button"
-          class="px-5 py-2.5 text-sm rounded-lg border border-border text-text hover:bg-background transition-colors font-medium"
-          @click="closeReviewModal"
-        >
-          Cancel
-        </button>
-        <form.Subscribe>
-          <template #default="{ isSubmitting }">
-            <button
-              type="button"
-              class="px-5 py-2.5 text-sm rounded-xl bg-primary text-white transition-colors flex items-center gap-2 font-medium disabled:opacity-50"
-              :disabled="isSubmitting"
-              @click="form.handleSubmit"
+      <div class="space-y-4">
+        <!-- Degree Program Field -->
+        <form.Field name="degreeProgram" v-slot="{ field, state }">
+          <div>
+            <label class="block text-sm font-medium text2 mb-1">
+              Degree Program <span class="text-primary">*</span>
+            </label>
+            <input
+              type="text"
+              :value="field.state.value"
+              @input="(e) => field.handleChange((e.target as HTMLInputElement).value)"
+              @blur="field.handleBlur"
+              placeholder="e.g., BS Computer Science"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary"
+            />
+            <p
+              v-if="state.meta.isTouched && state.meta.errors.length"
+              class="text-primary text-xs mt-1"
             >
-              <span v-if="isSubmitting">Submitting...</span>
-              <template v-else>
-                Submit Registration
-                <Icon name="material-symbols:check" class="size-4" />
-              </template>
-            </button>
-          </template>
+              {{ getErrorMessage(state.meta.errors[0]) }}
+            </p>
+          </div>
+        </form.Field>
+
+        <div class="grid grid-cols-2 sm:grid-cols-2 gap-4">
+          <!-- Year Graduated Field -->
+          <form.Field name="yearGraduated" v-slot="{ field, state }">
+            <div>
+              <label class="block text-sm font-medium text2 mb-1">
+                Year Graduated <span class="text-primary">*</span>
+              </label>
+              <input
+                type="text"
+                :value="field.state.value"
+                @input="(e) => field.handleChange((e.target as HTMLInputElement).value)"
+                @blur="field.handleBlur"
+                placeholder="e.g. 2020"
+                maxlength="4"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary"
+              />
+              <p
+                v-if="state.meta.isTouched && state.meta.errors.length"
+                class="text-primary text-xs mt-1"
+              >
+                {{ getErrorMessage(state.meta.errors[0]) }}
+              </p>
+            </div>
+          </form.Field>
+
+          <!-- Student Number Field -->
+          <form.Field name="studentNumber" v-slot="{ field, state }">
+            <div>
+              <label class="block text-sm font-medium text2 mb-1">
+                Student Number
+              </label>
+              <input
+                type="text"
+                :value="field.state.value"
+                @input="(e) => field.handleChange((e.target as HTMLInputElement).value)"
+                @blur="field.handleBlur"
+                placeholder="e.g. 2016-12345 (optional)"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary"
+              />
+              <p
+                v-if="state.meta.isTouched && state.meta.errors.length"
+                class="text-primary text-xs mt-1"
+              >
+                {{ getErrorMessage(state.meta.errors[0]) }}
+              </p>
+            </div>
+          </form.Field>
+        </div>
+      </div>
+    </div>
+
+    <!-- Professional Information Section -->
+    <div class="space-y-6 border-t border-gray-200 pt-8">
+      <div>
+        <h2 class="text-2xl font-bold text mb-2">Professional Information</h2>
+        <p class="text-subtle">
+          Tell us about your current professional status (optional).
+        </p>
+      </div>
+
+      <div class="space-y-4">
+        <!-- Current Employer Field -->
+        <form.Field name="currentEmployer" v-slot="{ field, state }">
+          <div>
+            <label class="block text-sm font-medium text2 mb-1">
+              Current Employer
+            </label>
+            <input
+              type="text"
+              :value="field.state.value"
+              @input="(e) => field.handleChange((e.target as HTMLInputElement).value)"
+              @blur="field.handleBlur"
+              placeholder="Company Name"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary"
+            />
+            <p
+              v-if="state.meta.isTouched && state.meta.errors.length"
+              class="text-primary text-xs mt-1"
+            >
+              {{ getErrorMessage(state.meta.errors[0]) }}
+            </p>
+          </div>
+        </form.Field>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <!-- Job Title Field -->
+          <form.Field name="jobTitle" v-slot="{ field, state }">
+            <div>
+              <label class="block text-sm font-medium text2 mb-1">
+                Job Title
+              </label>
+              <input
+                type="text"
+                :value="field.state.value"
+                @input="(e) => field.handleChange((e.target as HTMLInputElement).value)"
+                @blur="field.handleBlur"
+                placeholder="Software Engineer"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary"
+              />
+              <p
+                v-if="state.meta.isTouched && state.meta.errors.length"
+                class="text-primary text-xs mt-1"
+              >
+                {{ getErrorMessage(state.meta.errors[0]) }}
+              </p>
+            </div>
+          </form.Field>
+
+          <!-- Industry Field -->
+          <form.Field name="industry" v-slot="{ field, state }">
+            <div>
+              <label class="block text-sm font-medium text2 mb-1">
+                Industry
+              </label>
+              <input
+                type="text"
+                :value="field.state.value"
+                @input="(e) => field.handleChange((e.target as HTMLInputElement).value)"
+                @blur="field.handleBlur"
+                placeholder="Technology"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary"
+              />
+              <p
+                v-if="state.meta.isTouched && state.meta.errors.length"
+                class="text-primary text-xs mt-1"
+              >
+                {{ getErrorMessage(state.meta.errors[0]) }}
+              </p>
+            </div>
+          </form.Field>
+        </div>
+
+        <!-- Years of Experience -->
+        <form.Field name="yearsOfExperience" v-slot="{ field, state }">
+          <div>
+            <label class="block text-sm font-medium text2 mb-1">
+              Years of Professional Experience
+            </label>
+            <input
+              type="number"
+              :value="field.state.value"
+              @input="(e) => field.handleChange((e.target as HTMLInputElement).value)"
+              @blur="field.handleBlur"
+              placeholder="e.g., 5"
+              min="0"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary"
+            />
+            <p
+              v-if="state.meta.isTouched && state.meta.errors.length"
+              class="text-primary text-xs mt-1"
+            >
+              {{ getErrorMessage(state.meta.errors[0]) }}
+            </p>
+          </div>
+        </form.Field>
+
+        <!-- Mentorship Program Section -->
+        <div class="pt-4 border-t border-gray-200">
+          <h3 class="flex items-center gap-2 text-lg font-semibold text mb-4">
+            <AcademicCapIcon
+              class="w-5 h-5 text-primary -mr-1 mb-0.5"
+            />Mentorship Program
+          </h3>
+
+          <!-- Join Mentorship Program -->
+          <form.Field name="joinMentorshipProgram" v-slot="{ field, state }">
+            <div>
+              <label class="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  :checked="field.state.value"
+                  @change="(e) => field.handleChange((e.target as HTMLInputElement).checked)"
+                  @blur="field.handleBlur"
+                  class="mt-1 w-4 h-4 border-gray-300 rounded focus:ring-secondary"
+                />
+                <span class="text-sm text">
+                  I am interested in joining the Mentorship Program
+                </span>
+              </label>
+              <p
+                v-if="state.meta.isTouched && state.meta.errors.length"
+                class="text-primary text-xs mt-1 ml-7"
+              >
+                {{ getErrorMessage(state.meta.errors[0]) }}
+              </p>
+            </div>
+          </form.Field>
+
+          <!-- Mentorship Details (Show only if checkbox is checked) -->
+          <form.Subscribe v-slot="{ values }">
+            <div
+              v-if="values.joinMentorshipProgram"
+              class="mt-6 space-y-4 background border border-purple-200 rounded-lg p-4"
+            >
+              <h4 class="font-semibold text mb-3">Mentorship Preferences</h4>
+
+              <!-- Mentorship Areas (Multi-select) -->
+              <div>
+                <label class="block text-sm font-medium text2 mb-2">
+                  Areas of Interest (Select all that apply)
+                </label>
+                <div class="space-y-2">
+                  <form.Field name="mentorshipAreas" v-slot="{ field, state }">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      <label
+                        v-for="area in mentorshipAreas"
+                        :key="area.value"
+                        class="flex items-center gap-2 cursor-pointer"
+                      >
+                        <input
+                          type="checkbox"
+                          :value="area.value"
+                          :checked="field.state.value?.includes(area.value)"
+                          @change="(e) => {
+                        const checked = (e.target as HTMLInputElement).checked;
+                        const currentValue = field.state.value || [];
+                        const newValue = checked
+                          ? [...currentValue, area.value]
+                          : currentValue.filter((v: string) => v !== area.value);
+                        field.handleChange(newValue);
+                      }"
+                          class="w-4 h-4 border-gray-300 rounded focus:ring-secondary"
+                        />
+                        <span class="text-sm text2">{{ area.label }}</span>
+                      </label>
+                    </div>
+                    <p
+                      v-if="state.meta.isTouched && state.meta.errors.length"
+                      class="text-primary text-xs mt-1"
+                    >
+                      {{ getErrorMessage(state.meta.errors[0]) }}
+                    </p>
+                  </form.Field>
+                </div>
+              </div>
+              <form.Subscribe v-slot="{ values }">
+                <div
+                  v-if="values.mentorshipAreas?.includes('other')"
+                  class="mt-3"
+                >
+                  <form.Field
+                    name="mentorshipAreasOther"
+                    v-slot="{ field, state }"
+                  >
+                    <div>
+                      <label
+                        class="block text-sm font-medium text2 mb-1 focus:outline-none focus:ring-2 focus:ring-secondary"
+                      >
+                        Please specify (Other)
+                      </label>
+                      <input
+                        type="text"
+                        :value="field.state.value"
+                        @input="(e) =>
+            field.handleChange(
+              (e.target as HTMLInputElement).value
+            )
+          "
+                        @blur="field.handleBlur"
+                        placeholder="Enter your area of interest"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary"
+                      />
+
+                      <p
+                        v-if="state.meta.isTouched && state.meta.errors.length"
+                        class="text-primary text-xs mt-1"
+                      >
+                        {{ getErrorMessage(state.meta.errors[0]) }}
+                      </p>
+                    </div>
+                  </form.Field>
+                </div>
+              </form.Subscribe>
+
+              <!-- Industry Tracks (Multi-select) -->
+              <div>
+                <label class="block text-sm font-medium text2 mb-2">
+                  Industry Tracks (Select all that apply)
+                </label>
+                <div class="space-y-2">
+                  <form.Field
+                    name="mentorshipIndustryTracks"
+                    v-slot="{ field, state }"
+                  >
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      <label
+                        v-for="track in industryTracks"
+                        :key="track.value"
+                        class="flex items-center gap-2 cursor-pointer"
+                      >
+                        <input
+                          type="checkbox"
+                          :value="track.value"
+                          :checked="field.state.value?.includes(track.value)"
+                          @change="(e) => {
+                        const checked = (e.target as HTMLInputElement).checked;
+                        const currentValue = field.state.value || [];
+                        const newValue = checked
+                          ? [...currentValue, track.value]
+                          : currentValue.filter((v: string) => v !== track.value);
+                        field.handleChange(newValue);
+                      }"
+                          class="w-4 h-4 border-gray-300 rounded focus:ring-secondary"
+                        />
+                        <span class="text-sm text2">{{ track.label }}</span>
+                      </label>
+                    </div>
+                    <p
+                      v-if="state.meta.isTouched && state.meta.errors.length"
+                      class="text-primary text-xs mt-1"
+                    >
+                      {{ getErrorMessage(state.meta.errors[0]) }}
+                    </p>
+                  </form.Field>
+                </div>
+              </div>
+
+              <form.Subscribe v-slot="{ values }">
+                <div
+                  v-if="values.mentorshipIndustryTracks?.includes('other')"
+                  class="mt-3"
+                >
+                  <form.Field
+                    name="mentorshipIndustryTracksOther"
+                    v-slot="{ field, state }"
+                  >
+                    <div>
+                      <label class="block text-sm font-medium text2 mb-1">
+                        Please specify (Other)
+                      </label>
+                      <input
+                        type="text"
+                        :value="field.state.value"
+                        @input="(e) =>
+            field.handleChange(
+              (e.target as HTMLInputElement).value
+            )
+          "
+                        @blur="field.handleBlur"
+                        placeholder="Enter industry"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary"
+                      />
+
+                      <p
+                        v-if="state.meta.isTouched && state.meta.errors.length"
+                        class="text-primary text-xs mt-1"
+                      >
+                        {{ getErrorMessage(state.meta.errors[0]) }}
+                      </p>
+                    </div>
+                  </form.Field>
+                </div>
+              </form.Subscribe>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <!-- Mentorship Format -->
+                <form.Field name="mentorshipFormat" v-slot="{ field, state }">
+                  <div>
+                    <label class="block text-sm font-medium text2 mb-1">
+                      Preferred Mentorship Format
+                    </label>
+                    <select
+                      :value="field.state.value"
+                      @input="(e) => field.handleChange((e.target as HTMLSelectElement).value)"
+                      @blur="field.handleBlur"
+                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary"
+                    >
+                      <option value="">Select format</option>
+                      <option value="one-on-one">1-on-1 Mentorship</option>
+                      <option value="group">Group Mentorship</option>
+                      <option value="both">Either format works</option>
+                    </select>
+                    <p
+                      v-if="state.meta.isTouched && state.meta.errors.length"
+                      class="text-primary text-xs mt-1"
+                    >
+                      {{ getErrorMessage(state.meta.errors[0]) }}
+                    </p>
+                  </div>
+                </form.Field>
+
+                <!-- Availability -->
+                <form.Field
+                  name="mentorshipAvailability"
+                  v-slot="{ field, state }"
+                >
+                  <div>
+                    <label class="block text-sm font-medium text2 mb-1">
+                      Availability (hours per month)
+                    </label>
+                    <input
+                      type="number"
+                      :value="field.state.value"
+                      @input="(e) => field.handleChange((e.target as HTMLInputElement).value)"
+                      @blur="field.handleBlur"
+                      placeholder="e.g., 4"
+                      min="1"
+                      max="40"
+                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary"
+                    />
+                    <p class="text-sm text-gray-500 mt-1">
+                      Typical commitment: 2-4 hours per month
+                    </p>
+                    <p
+                      v-if="state.meta.isTouched && state.meta.errors.length"
+                      class="text-primary text-xs mt-1"
+                    >
+                      {{ getErrorMessage(state.meta.errors[0]) }}
+                    </p>
+                  </div>
+                </form.Field>
+              </div>
+            </div>
+          </form.Subscribe>
+        </div>
+      </div>
+    </div>
+
+    <!-- Membership Section -->
+    <div class="space-y-6 border-t border-gray-200 pt-8">
+      <div>
+        <h2 class="text-2xl font-bold text mb-2">Membership</h2>
+        <p class="text-subtle">Choose your payment method.</p>
+      </div>
+
+      <div class="space-y-4">
+        <!-- Payment Method Field -->
+        <form.Field name="paymentMethod" v-slot="{ field, state }">
+          <div>
+            <label class="block text-sm font-medium text2 mb-1">
+              Payment Method <span class="text-primary">*</span>
+            </label>
+            <select
+              :value="field.state.value"
+              @input="(e) => field.handleChange((e.target as HTMLSelectElement).value)"
+              @blur="field.handleBlur"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary"
+            >
+              <option value="">Select payment method</option>
+              <option
+                v-for="option in paymentOptions"
+                :key="option.value"
+                :value="option.value"
+              >
+                {{ option.label }}
+              </option>
+            </select>
+            <p
+              v-if="state.meta.isTouched && state.meta.errors.length"
+              class="text-primary text-xs mt-1"
+            >
+              {{ getErrorMessage(state.meta.errors[0]) }}
+            </p>
+          </div>
+        </form.Field>
+
+        <!-- Wrap payment details in form.Subscribe -->
+        <form.Subscribe v-slot="{ values }">
+          <!-- GCash Payment Details -->
+          <div v-if="values.paymentMethod === 'gcash'" class="space-y-4 p-4">
+            <h3
+              class="flex items-center gap-2 text-lg font-semibold text mb-4 -ml-3"
+            >
+              <DevicePhoneMobileIcon
+                class="w-5 h-5 text-primary -mr-1.5 mb-0.5"
+              />GCash Payment Details
+            </h3>
+
+            <!-- GCash Reference Number -->
+            <form.Field name="gcashReferenceNumber" v-slot="{ field, state }">
+              <div>
+                <label class="block text-sm font-medium text2 mb-1">
+                  GCash Reference Number <span class="text-primary">*</span>
+                </label>
+                <input
+                  type="text"
+                  :value="field.state.value"
+                  @input="(e) => field.handleChange((e.target as HTMLInputElement).value)"
+                  @blur="field.handleBlur"
+                  placeholder="e.g. 1234567890123"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary"
+                />
+                <p
+                  v-if="state.meta.isTouched && state.meta.errors.length"
+                  class="text-primary text-xs mt-1"
+                >
+                  {{ getErrorMessage(state.meta.errors[0]) }}
+                </p>
+              </div>
+            </form.Field>
+
+            <!-- GCash Proof of Payment -->
+            <form.Field name="gcashProofOfPayment" v-slot="{ field, state }">
+              <div>
+                <label class="block text-sm font-medium text2 mb-1">
+                  Screenshot/Proof of Payment
+                  <span class="text-primary">*</span>
+                </label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  @change="(e) => field.handleChange((e.target as HTMLInputElement).files?.[0])"
+                  @blur="field.handleBlur"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary"
+                />
+                <p class="text-sm text-gray-500 mt-1">
+                  Upload a screenshot of your GCash transaction
+                </p>
+              </div>
+            </form.Field>
+          </div>
+
+          <!-- Bank Transfer Payment Details -->
+          <div v-if="values.paymentMethod === 'bank'" class="space-y-4 p-4">
+            <h3
+              class="flex items-center gap-2 text-lg font-semibold text mb-4 -ml-3"
+            >
+              <BuildingLibraryIcon
+                class="w-5 h-5 text-primary -mr-1.5 mb-0.5"
+              />Bank Transfer Details
+            </h3>
+
+            <!-- Sender Name -->
+            <form.Field name="bankSenderName" v-slot="{ field, state }">
+              <div>
+                <label class="block text-sm font-medium text2 mb-1">
+                  Name of Sender/Account Holder
+                  <span class="text-primary">*</span>
+                </label>
+                <input
+                  type="text"
+                  :value="field.state.value"
+                  @input="(e) => field.handleChange((e.target as HTMLInputElement).value)"
+                  @blur="field.handleBlur"
+                  placeholder="Juan Dela Cruz"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary"
+                />
+                <p
+                  v-if="state.meta.isTouched && state.meta.errors.length"
+                  class="text-primary text-xs mt-1"
+                >
+                  {{ getErrorMessage(state.meta.errors[0]) }}
+                </p>
+              </div>
+            </form.Field>
+
+            <!-- Bank Name -->
+            <form.Field name="bankName" v-slot="{ field, state }">
+              <div>
+                <label class="block text-sm font-medium text2 mb-1">
+                  Bank Name <span class="text-primary">*</span>
+                </label>
+                <input
+                  type="text"
+                  :value="field.state.value"
+                  @input="(e) => field.handleChange((e.target as HTMLInputElement).value)"
+                  @blur="field.handleBlur"
+                  placeholder="e.g. BDO, BPI, Metrobank"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary"
+                />
+                <p
+                  v-if="state.meta.isTouched && state.meta.errors.length"
+                  class="text-primary text-xs mt-1"
+                >
+                  {{ getErrorMessage(state.meta.errors[0]) }}
+                </p>
+              </div>
+            </form.Field>
+
+            <!-- Account Number -->
+            <form.Field name="bankAccountNumber" v-slot="{ field, state }">
+              <div>
+                <label class="block text-sm font-medium text2 mb-1">
+                  Account Number (Last 4 digits)
+                  <span class="text-primary">*</span>
+                </label>
+                <input
+                  type="text"
+                  :value="field.state.value"
+                  @input="(e) => field.handleChange((e.target as HTMLInputElement).value)"
+                  @blur="field.handleBlur"
+                  placeholder="1234"
+                  maxlength="4"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary"
+                />
+                <p
+                  v-if="state.meta.isTouched && state.meta.errors.length"
+                  class="text-primary text-xs mt-1"
+                >
+                  {{ getErrorMessage(state.meta.errors[0]) }}
+                </p>
+              </div>
+            </form.Field>
+
+            <!-- Reference Number -->
+            <form.Field name="bankReferenceNumber" v-slot="{ field, state }">
+              <div>
+                <label class="block text-sm font-medium text2 mb-1">
+                  Reference/Transaction Number
+                  <span class="text-primary">*</span>
+                </label>
+                <input
+                  type="text"
+                  :value="field.state.value"
+                  @input="(e) => field.handleChange((e.target as HTMLInputElement).value)"
+                  @blur="field.handleBlur"
+                  placeholder="Transaction reference number"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary"
+                />
+                <p
+                  v-if="state.meta.isTouched && state.meta.errors.length"
+                  class="text-primary text-xs mt-1"
+                >
+                  {{ getErrorMessage(state.meta.errors[0]) }}
+                </p>
+              </div>
+            </form.Field>
+
+            <!-- Proof of Transfer -->
+            <form.Field name="bankProofOfPayment" v-slot="{ field, state }">
+              <div>
+                <label class="block text-sm font-medium text2 mb-1">
+                  Proof of Transfer <span class="text-primary">*</span>
+                </label>
+                <input
+                  type="file"
+                  accept="image/*,.pdf"
+                  @change="(e) => field.handleChange((e.target as HTMLInputElement).files?.[0])"
+                  @blur="field.handleBlur"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary"
+                />
+                <p class="text-sm text-gray-500 mt-1">
+                  Upload screenshot or deposit slip
+                </p>
+                <p
+                  v-if="state.meta.isTouched && state.meta.errors.length"
+                  class="text-primary text-xs mt-1"
+                >
+                  {{ getErrorMessage(state.meta.errors[0]) }}
+                </p>
+              </div>
+            </form.Field>
+          </div>
+
+          <!-- Cash Payment Details -->
+          <div v-if="values.paymentMethod === 'cash'" class="space-y-4 p-4">
+            <h3
+              class="flex items-center gap-2 text-lg font-semibold text mb-4 -ml-3"
+            >
+              <BanknotesIcon class="w-5 h-5 text-primary -mr-1 mb-0.5" />Cash
+              Payment Details
+            </h3>
+
+            <!-- Date of Payment -->
+            <form.Field name="cashPaymentDate" v-slot="{ field, state }">
+              <div>
+                <label class="block text-sm font-medium text2 mb-1">
+                  Date of Payment <span class="text-primary">*</span>
+                </label>
+                <input
+                  type="date"
+                  :value="field.state.value"
+                  @input="(e) => field.handleChange((e.target as HTMLInputElement).value)"
+                  @blur="field.handleBlur"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary"
+                />
+                <p
+                  v-if="state.meta.isTouched && state.meta.errors.length"
+                  class="text-primary text-xs mt-1"
+                >
+                  {{ getErrorMessage(state.meta.errors[0]) }}
+                </p>
+              </div>
+            </form.Field>
+
+            <!-- Staff Member -->
+            <form.Field name="cashReceivedBy" v-slot="{ field, state }">
+              <div>
+                <label class="block text-sm font-medium text2 mb-1">
+                  Name of Staff Member Who Received Payment
+                  <span class="text-primary">*</span>
+                </label>
+                <input
+                  type="text"
+                  :value="field.state.value"
+                  @input="(e) => field.handleChange((e.target as HTMLInputElement).value)"
+                  @blur="field.handleBlur"
+                  placeholder="Staff member name"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary"
+                />
+                <p
+                  v-if="state.meta.isTouched && state.meta.errors.length"
+                  class="text-primary text-xs mt-1"
+                >
+                  {{ getErrorMessage(state.meta.errors[0]) }}
+                </p>
+              </div>
+            </form.Field>
+          </div>
         </form.Subscribe>
       </div>
-    </dialog>
-  </Teleport>
+    </div>
+
+    <!-- Data Privacy Section -->
+    <div class="space-y-6 border-t border-gray-200 pt-8">
+      <div>
+        <h2 class="text-2xl font-bold text mb-2">Data Privacy Agreement</h2>
+        <p class="text-subtle">
+          Please review and accept our data privacy policy to continue.
+        </p>
+      </div>
+
+      <div class="space-y-4">
+        <div
+          class="bg-background border-background rounded-lg p-4 max-h-60 overflow-y-auto"
+        >
+          <h3 class="font-semibold text mb-2">Privacy Policy</h3>
+          <p class="text-sm text-subtle mb-3">
+            By submitting this form, you agree to the collection and processing
+            of your personal information in accordance with the Data Privacy Act
+            of 2012 (Republic Act No. 10173).
+          </p>
+          <p class="text-sm text-subtle mb-3">
+            <strong>Information We Collect:</strong> We collect your personal
+            details, academic records, professional information, and contact
+            details for the purpose of membership registration and
+            communication.
+          </p>
+          <p class="text-sm text-subtle mb-3">
+            <strong>How We Use Your Data:</strong> Your information will be used
+            solely for membership management, event notifications, alumni
+            networking, and communication purposes.
+          </p>
+          <p class="text-sm text-subtle mb-3">
+            <strong>Data Security:</strong> We implement appropriate security
+            measures to protect your personal information from unauthorized
+            access, disclosure, or misuse.
+          </p>
+          <p class="text-sm text-subtle">
+            <strong>Your Rights:</strong> You have the right to access, correct,
+            or request deletion of your personal data at any time by contacting
+            us.
+          </p>
+        </div>
+
+        <!-- Data Privacy Consent Field -->
+        <form.Field name="dataPrivacyConsent" v-slot="{ field, state }">
+          <div>
+            <label class="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                :checked="field.state.value"
+                @change="(e) => field.handleChange((e.target as HTMLInputElement).checked)"
+                @blur="field.handleBlur"
+                class="mt-1 w-4 h-4 text-secondary border-gray-300 rounded focus:ring-secondary"
+              />
+              <span class="text-sm text">
+                I have read and agree to the
+                <a href="#" class="text-primary hover:underline"
+                  >Data Privacy Policy</a
+                >
+                and consent to the collection and processing of my personal
+                information.
+                <span class="text-primary">*</span>
+              </span>
+            </label>
+            <p
+              v-if="state.meta.isTouched && state.meta.errors.length"
+              class="text-primary text-xs mt-1 ml-7"
+            >
+              {{ getErrorMessage(state.meta.errors[0]) }}
+            </p>
+          </div>
+        </form.Field>
+      </div>
+    </div>
+
+    <!-- Submit Button -->
+    <!-- <div class="border-t border-gray-200 pt-8">
+      <form.Subscribe v-slot="{ canSubmit, isSubmitting }">
+        
+        <button
+          type="submit"
+          :disabled="!canSubmit || isSubmitting"
+          class="w-full bg-primary text py-3 px-6 rounded-md font-semibold hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-secondary focus:ring-offset-2 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+        >
+          {{ isSubmitting ? "Submitting..." : "Submit Registration" }}
+        </button>
+      </form.Subscribe>
+    </div> -->
+    <div class="border-t border-gray-200 pt-8">
+      <form.Subscribe v-slot="{ canSubmit, isSubmitting, isValid, values }">
+        <!-- Debug info -->
+        <!-- <div
+          class="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded text-xs space-y-1"
+        >
+          <p><strong>Can Submit:</strong> {{ canSubmit }}</p>
+          <p><strong>Is Valid:</strong> {{ isValid }}</p>
+          <p><strong>Is Submitting:</strong> {{ isSubmitting }}</p>
+          <p class="text-xs text-gray-600 mt-2">
+            Check console for form values
+          </p>
+          <button
+            type="button"
+            @click="console.log('Form values:', values)"
+            class="mt-2 px-3 py-1 bg-blue-100 rounded text-blue-700"
+          >
+            Log Form Values
+          </button>
+        </div> -->
+
+        <button
+          type="submit"
+          :disabled="!canSubmit || isSubmitting"
+          class="w-full bg-primary text-white py-3 px-6 rounded-md font-semibold hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-secondary focus:ring-offset-2 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+        >
+          {{ isSubmitting ? "Submitting..." : "Submit Registration" }}
+        </button>
+      </form.Subscribe>
+    </div>
+  </form>
 </template>
-
-<style scoped>
-/* Slide left (forward navigation) */
-.slide-left-enter-active,
-.slide-left-leave-active {
-  transition: all 0.3s ease-out;
-}
-
-.slide-left-enter-from {
-  opacity: 0;
-  transform: translateX(30px);
-}
-
-.slide-left-leave-to {
-  opacity: 0;
-  transform: translateX(-30px);
-}
-
-/* Slide right (back navigation) */
-.slide-right-enter-active,
-.slide-right-leave-active {
-  transition: all 0.3s ease-out;
-}
-
-.slide-right-enter-from {
-  opacity: 0;
-  transform: translateX(-30px);
-}
-
-.slide-right-leave-to {
-  opacity: 0;
-  transform: translateX(30px);
-}
-
-/* Modal dialog animations */
-.modal-dialog {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  margin: 0;
-  animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.modal-dialog.modal-closing {
-  animation: slideDown 0.12s cubic-bezier(0.4, 0, 1, 1) forwards;
-}
-
-.modal-dialog[open]::backdrop {
-  animation: fadeIn 0.3s ease-out;
-}
-
-@keyframes slideUp {
-  from {
-    transform: translate(-50%, calc(-50% + 100vh));
-  }
-  to {
-    transform: translate(-50%, -50%);
-  }
-}
-
-@keyframes slideDown {
-  from {
-    transform: translate(-50%, -50%);
-  }
-  to {
-    transform: translate(-50%, calc(-50% + 100vh));
-  }
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-</style>
