@@ -260,6 +260,71 @@ const form = useForm({
   },
 });
 
+const scrollToFirstError = () => {
+  // Wait a bit for validation messages to render
+  setTimeout(() => {
+    // Find the first error message
+    const firstError = document.querySelector(".text-primary.text-xs");
+
+    if (firstError) {
+      // Find the parent field container
+      const fieldContainer = firstError.closest("div");
+
+      if (fieldContainer) {
+        // Scroll to the field with some offset
+        fieldContainer.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+
+        // Optional: Focus on the input if it exists
+        const input = fieldContainer.querySelector("input, select, textarea");
+        if (input) {
+          (input as HTMLElement).focus();
+        }
+      }
+    }
+  }, 100);
+};
+
+const handleButtonClick = async () => {
+  // Touch all required fields first to show any validation errors
+  const requiredFields = [
+    "firstName",
+    "lastName",
+    "dateOfBirth",
+    "email",
+    "mobileNumber",
+    "currentAddress",
+    "province",
+    "city",
+    "barangay",
+    "zipCode",
+    "degreeProgram",
+    "yearGraduated",
+    "paymentMethod",
+    "dataPrivacyConsent",
+  ] as const;
+
+  requiredFields.forEach((fieldName) => {
+    form.setFieldMeta(fieldName, (prev) => ({ ...prev, isTouched: true }));
+  });
+
+  // Wait for errors to render
+  await new Promise((resolve) => setTimeout(resolve, 100));
+
+  // Check if there are any errors
+  const hasErrors = document.querySelector(".text-primary.text-xs.mt-1");
+
+  if (hasErrors) {
+    // Scroll to first error
+    scrollToFirstError();
+  } else {
+    // No errors, submit the form
+    await form.handleSubmit();
+  }
+};
+
 // Fetch provinces on mount
 onMounted(async () => {
   try {
@@ -353,15 +418,7 @@ watch(watchCity, async (newCity) => {
 </script>
 
 <template>
-  <form
-    @submit="
-      (e) => {
-        e.preventDefault();
-        form.handleSubmit();
-      }
-    "
-    class="space-y-8 p-1"
-  >
+  <form @submit.prevent class="space-y-8 p-1">
     <!-- Personal Information Section -->
     <div class="space-y-6">
       <div>
@@ -1537,19 +1594,7 @@ watch(watchCity, async (newCity) => {
     </div>
 
     <!-- Submit Button -->
-    <!-- <div class="border-t border-gray-200 pt-8">
-      <form.Subscribe v-slot="{ canSubmit, isSubmitting }">
-        
-        <button
-          type="submit"
-          :disabled="!canSubmit || isSubmitting"
-          class="w-full bg-primary text py-3 px-6 rounded-md font-semibold hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-secondary focus:ring-offset-2 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
-        >
-          {{ isSubmitting ? "Submitting..." : "Submit Registration" }}
-        </button>
-      </form.Subscribe>
-    </div> -->
-    <div class="border-t border-gray-200 pt-8">
+    <div class="border-t border-gray-200 pt-8 flex justify-end">
       <form.Subscribe v-slot="{ canSubmit, isSubmitting, isValid, values }">
         <!-- Debug info -->
         <!-- <div
@@ -1571,9 +1616,10 @@ watch(watchCity, async (newCity) => {
         </div> -->
 
         <button
-          type="submit"
-          :disabled="!canSubmit || isSubmitting"
-          class="w-full bg-primary text-white py-3 px-6 rounded-md font-semibold hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-secondary focus:ring-offset-2 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+          type="button"
+          @click="handleButtonClick"
+          :disabled="isSubmitting"
+          class="w-1/4 bg-primary text-white py-3 px-6 rounded-xl font-semibold hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-secondary focus:ring-offset-2 transition-colors"
         >
           {{ isSubmitting ? "Submitting..." : "Submit Registration" }}
         </button>
