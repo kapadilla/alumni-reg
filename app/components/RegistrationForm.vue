@@ -255,8 +255,98 @@ const form = useForm({
   },
   onSubmit: async ({ value }) => {
     console.log("Form submitted:", value);
-    // Handle form submission here
-    alert("Form submitted successfully! Check console for data.");
+    
+    try {
+      // Create FormData for multipart submission
+      const formData = new FormData();
+      
+      // Add nested objects as JSON strings
+      formData.append('personalDetails', JSON.stringify({
+        title: value.suffix || 'Mr.',
+        firstName: value.firstName,
+        lastName: value.lastName,
+        suffix: value.suffix || '',
+        maidenName: value.maidenName || '',
+        dateOfBirth: value.dateOfBirth,
+        email: value.email,
+        mobileNumber: value.mobileNumber,
+        currentAddress: value.currentAddress,
+        province: value.province,
+        city: value.city,
+        barangay: value.barangay,
+      }));
+
+      formData.append('academicStatus', JSON.stringify({
+        degreeProgram: value.degreeProgram,
+        yearGraduated: value.yearGraduated,
+        studentNumber: value.studentNumber || '',
+      }));
+
+      formData.append('professional', JSON.stringify({
+        currentEmployer: value.currentEmployer || '',
+        jobTitle: value.jobTitle || '',
+        industry: value.industry || '',
+        yearsOfExperience: value.yearsOfExperience || '',
+      }));
+
+      formData.append('membership', JSON.stringify({
+        paymentMethod: value.paymentMethod,
+        dataPrivacyConsent: value.dataPrivacyConsent,
+        gcashReferenceNumber: value.gcashReferenceNumber || '',
+        bankName: value.bankName || '',
+        bankAccountNumber: value.bankAccountNumber || '',
+        bankReferenceNumber: value.bankReferenceNumber || '',
+        bankSenderName: value.bankSenderName || '',
+        cashPaymentDate: value.cashPaymentDate || '',
+        cashReceivedBy: value.cashReceivedBy || '',
+      }));
+
+      formData.append('mentorship', JSON.stringify({
+        joinMentorshipProgram: value.joinMentorshipProgram || false,
+        mentorshipAreas: value.mentorshipAreas || [],
+        mentorshipAreasOther: value.mentorshipAreasOther || '',
+        mentorshipAvailability: value.mentorshipAvailability || '',
+        mentorshipFormat: value.mentorshipFormat || '',
+        mentorshipIndustryTracks: value.mentorshipIndustryTracks || [],
+        mentorshipIndustryTracksOther: value.mentorshipIndustryTracksOther || '',
+      }));
+
+      // Add file uploads
+      if (value.gcashProofOfPayment) {
+        formData.append('gcashProofOfPayment', value.gcashProofOfPayment);
+      }
+      if (value.bankProofOfPayment) {
+        formData.append('bankProofOfPayment', value.bankProofOfPayment);
+      }
+
+      // Submit to backend
+      const response = await fetch(
+        'http://localhost:8000/api/v1/registration/submit/',
+        {
+          method: 'POST',
+          body: formData,
+          // Don't set Content-Type header - browser will auto-set with boundary
+        }
+      );
+
+      const result = await response.json();
+
+      if (result.success) {
+        alert(
+          `✅ Registration submitted successfully!\n\nApplication ID: ${result.data.applicationId}\nStatus: ${result.data.status}`
+        );
+        console.log("Success response:", result);
+        // Optionally reset form or redirect
+      } else {
+        console.error('Validation errors:', result.errors);
+        alert(
+          `❌ Submission failed:\n\n${JSON.stringify(result.errors, null, 2)}`
+        );
+      }
+    } catch (error) {
+      console.error('Submission error:', error);
+      // alert(`❌ Error submitting form: ${error.message}`);
+    }
   },
 });
 
