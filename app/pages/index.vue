@@ -79,7 +79,11 @@ const handleSubmit = () => {
     </div>
   </div>
 </template> -->
-<script setup lang="ts"></script>
+<script setup lang="ts">
+useHead({
+  title: 'Membership Registration - UP Cebu Alumni Association'
+})
+</script>
 
 <template>
   <div class="min-h-screen bg-background py-4 md:py-8">

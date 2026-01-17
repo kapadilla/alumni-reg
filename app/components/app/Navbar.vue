@@ -24,7 +24,7 @@ defineEmits<{
       </button>
 
       <span class="text-primary dark:text-text font-semibold font-serif">
-        UP Cebu Alumni Association
+        UP Alumni Association - Cebu Chapter
       </span>
       <AppDarkModeToggle />
     </div>
