@@ -614,7 +614,7 @@ watch(watchCity, async (newCity) => {
                   :disabled="loadingProvinces"
                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary disabled:bg-gray-100"
                 >
-                  <option value="">Select Province</option>
+                  <option value="" disabled>Select Province</option>
                   <option
                     v-for="option in provinces"
                     :key="option.value"
@@ -649,7 +649,7 @@ watch(watchCity, async (newCity) => {
                   :disabled="loadingCities || cities.length === 0"
                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary disabled:background"
                 >
-                  <option value="">Select City</option>
+                  <option value="" disabled>Select City</option>
                   <option
                     v-for="option in cities"
                     :key="option.value"
@@ -680,7 +680,7 @@ watch(watchCity, async (newCity) => {
                   :disabled="loadingBarangays || barangays.length === 0"
                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary disabled:background"
                 >
-                  <option value="">Select Barangay</option>
+                  <option value="" disabled>Select Barangay</option>
                   <option
                     v-for="option in barangays"
                     :key="option.value"
@@ -1126,7 +1126,7 @@ watch(watchCity, async (newCity) => {
                       @blur="field.handleBlur"
                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary"
                     >
-                      <option value="">Select format</option>
+                      <option value="" disabled>Select format</option>
                       <option value="one-on-one">1-on-1 Mentorship</option>
                       <option value="group">Group Mentorship</option>
                       <option value="both">Either format works</option>
@@ -1197,7 +1197,7 @@ watch(watchCity, async (newCity) => {
               @blur="field.handleBlur"
               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary"
             >
-              <option value="">Select payment method</option>
+              <option value="" disabled>Select payment method</option>
               <option
                 v-for="option in paymentOptions"
                 :key="option.value"
