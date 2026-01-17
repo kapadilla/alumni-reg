@@ -9,7 +9,7 @@ definePageMeta({
 });
 
 useHead({
-  title: "Rejected Applications - UP Cebu Alumni Association",
+  title: "Rejected Applications - UP Alumni Association - Cebu Chapter",
 });
 
 

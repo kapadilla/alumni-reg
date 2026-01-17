@@ -81,7 +81,7 @@ const handleSubmit = () => {
 </template> -->
 <script setup lang="ts">
 useHead({
-  title: 'Membership Registration - UP Cebu Alumni Association'
+  title: 'Membership Registration - UP Alumni Association - Cebu Chapter'
 })
 </script>
 

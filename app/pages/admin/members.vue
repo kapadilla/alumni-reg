@@ -8,7 +8,7 @@ definePageMeta({
 });
 
 useHead({
-  title: "Members - UP Cebu Alumni Association",
+  title: "Members - UP Alumni Association - Cebu Chapter",
 });
 
 

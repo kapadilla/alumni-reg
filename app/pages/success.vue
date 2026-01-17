@@ -1,6 +1,6 @@
 <script setup lang="ts">
 useHead({
-  title: "Registration Successful - UP Cebu Alumni Association",
+  title: "Registration Successful - UP Alumni Association - Cebu Chapter",
 });
 </script>
 

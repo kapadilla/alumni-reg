@@ -5,7 +5,7 @@ definePageMeta({
 });
 
 useHead({
-  title: "Admin Login - UP Cebu Alumni Association",
+  title: "Admin Login - UP Alumni Association - Cebu Chapter",
 });
 
 

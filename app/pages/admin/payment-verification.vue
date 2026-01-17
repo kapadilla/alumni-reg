@@ -8,7 +8,7 @@ definePageMeta({
 });
 
 useHead({
-  title: "Payment Verification - UP Cebu Alumni Association",
+  title: "Payment Verification - UP Alumni Association - Cebu Chapter",
 });
 
 

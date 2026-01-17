@@ -6,7 +6,7 @@ definePageMeta({
 });
 
 useHead({
-  title: "Dashboard - UP Cebu Alumni Association",
+  title: "Dashboard - UP Alumni Association - Cebu Chapter",
 });
 
 

@@ -8,7 +8,7 @@ definePageMeta({
 });
 
 useHead({
-  title: "Alumni Verification - UP Cebu Alumni Association",
+  title: "Alumni Verification - UP Alumni Association - Cebu Chapter",
 });
 
 
