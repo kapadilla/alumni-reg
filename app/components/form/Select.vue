@@ -2,32 +2,36 @@
 const props = withDefaults(
   defineProps<{
     id?: string;
+    name?: string;
     label?: string;
     placeholder?: string;
     modelValue?: string;
     required?: boolean;
+    disabled?: boolean;
+    loading?: boolean;
     error?: string | { message: string } | unknown;
     hint?: string;
     options: { value: string; label: string }[];
   }>(),
   {
     required: true,
+    placeholder: 'Select an option',
   }
 );
 
 defineEmits<{
-  "update:modelValue": [value: string];
+  'update:modelValue': [value: string];
   blur: [];
 }>();
 
 // Extract error message from various error formats
 const errorMessage = computed(() => {
   if (!props.error) return undefined;
-  if (typeof props.error === "string") return props.error;
+  if (typeof props.error === 'string') return props.error;
   if (
-    typeof props.error === "object" &&
+    typeof props.error === 'object' &&
     props.error !== null &&
-    "message" in props.error
+    'message' in props.error
   ) {
     return (props.error as { message: string }).message;
   }
@@ -48,9 +52,11 @@ const errorMessage = computed(() => {
     </p>
     <select
       :id="id"
+      :name="name"
       :value="modelValue"
       :required="required"
-      class="select-arrow px-4 py-2.5 border-2 border-border rounded-lg bg-surface text-text focus:outline-none focus:border-primary transition-colors cursor-pointer appearance-none bg-no-repeat bg-right pr-10"
+      :disabled="disabled || loading"
+      class="select-arrow px-4 py-2.5 border-2 border-border rounded-lg bg-surface text-text focus:outline-none focus:border-primary transition-colors cursor-pointer appearance-none bg-no-repeat bg-right pr-10 disabled:opacity-50 disabled:cursor-not-allowed"
       :class="{ 'border-red-500 focus:border-red-500': errorMessage }"
       @change="
         $emit('update:modelValue', ($event.target as HTMLSelectElement).value)
@@ -58,7 +64,7 @@ const errorMessage = computed(() => {
       @blur="$emit('blur')"
     >
       <option value="" disabled selected class="text-subtle">
-        {{ placeholder }}
+        {{ loading ? 'Loading...' : placeholder }}
       </option>
       <option
         v-for="option in options"

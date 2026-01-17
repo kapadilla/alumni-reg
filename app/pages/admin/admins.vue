@@ -356,7 +356,7 @@ const handleReactivate = async () => {
       <Transition name="dialog">
         <div
           v-if="showModal"
-          class="fixed inset-0 z-[1000] flex items-center justify-center p-4"
+          class="fixed inset-0 z-1000 flex items-center justify-center p-4"
         >
           <div
             class="absolute inset-0 bg-black/50 backdrop-blur-sm"
@@ -455,7 +455,7 @@ const handleReactivate = async () => {
       <Transition name="dialog">
         <div
           v-if="showDeleteConfirm"
-          class="fixed inset-0 z-[1000] flex items-center justify-center p-4"
+          class="fixed inset-0 z-1000 flex items-center justify-center p-4"
         >
           <div
             class="absolute inset-0 bg-black/50 backdrop-blur-sm"
@@ -506,7 +506,7 @@ const handleReactivate = async () => {
       <Transition name="dialog">
         <div
           v-if="showReactivateConfirm"
-          class="fixed inset-0 z-[1000] flex items-center justify-center p-4"
+          class="fixed inset-0 z-1000 flex items-center justify-center p-4"
         >
           <div
             class="absolute inset-0 bg-black/50 backdrop-blur-sm"

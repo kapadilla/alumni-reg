@@ -4,17 +4,16 @@ const props = withDefaults(
     id?: string;
     name?: string;
     label?: string;
-    type?: string;
-    modelValue?: string;
+    modelValue?: File | null;
     required?: boolean;
     disabled?: boolean;
     error?: string | { message: string } | unknown;
     hint?: string;
-    maxlength?: string | number;
+    accept?: string;
   }>(),
   {
-    type: 'text',
     required: true,
+    accept: 'image/*',
   }
 );
 
@@ -32,10 +31,18 @@ const errorMessage = computed(() => {
   return String(props.error);
 });
 
-defineEmits<{
-  'update:modelValue': [value: string];
+const emit = defineEmits<{
+  'update:modelValue': [value: File | null];
   blur: [];
 }>();
+
+const handleChange = (event: Event) => {
+  const target = event.target as HTMLInputElement;
+  const file = target.files?.[0] ?? null;
+  emit('update:modelValue', file);
+};
+
+const fileName = computed(() => props.modelValue?.name ?? '');
 </script>
 
 <template>
@@ -52,18 +59,18 @@ defineEmits<{
     <input
       :id="id"
       :name="name"
-      :type="type"
-      :value="modelValue"
+      type="file"
+      :accept="accept"
       :required="required"
       :disabled="disabled"
-      :maxlength="maxlength"
-      class="px-4 py-2.5 border-2 border-border rounded-lg bg-surface text-text focus:outline-none focus:border-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+      class="px-4 py-2.5 border-2 border-border rounded-lg bg-surface text-text focus:outline-none focus:border-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
       :class="{ 'border-red-500 focus:border-red-500': errorMessage }"
-      @input="
-        $emit('update:modelValue', ($event.target as HTMLInputElement).value)
-      "
+      @change="handleChange"
       @blur="$emit('blur')"
     />
+    <p v-if="fileName" class="text-sm text-subtle">
+      Selected: {{ fileName }}
+    </p>
     <p v-if="errorMessage" class="text-sm text-red-500">
       {{ errorMessage }}
     </p>

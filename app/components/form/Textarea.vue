@@ -4,17 +4,17 @@ const props = withDefaults(
     id?: string;
     name?: string;
     label?: string;
-    type?: string;
     modelValue?: string;
     required?: boolean;
     disabled?: boolean;
     error?: string | { message: string } | unknown;
     hint?: string;
+    rows?: number;
     maxlength?: string | number;
   }>(),
   {
-    type: 'text',
     required: true,
+    rows: 3,
   }
 );
 
@@ -49,18 +49,18 @@ defineEmits<{
     <p v-if="hint" class="text-sm text-subtle">
       {{ hint }}
     </p>
-    <input
+    <textarea
       :id="id"
       :name="name"
-      :type="type"
       :value="modelValue"
       :required="required"
       :disabled="disabled"
+      :rows="rows"
       :maxlength="maxlength"
-      class="px-4 py-2.5 border-2 border-border rounded-lg bg-surface text-text focus:outline-none focus:border-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+      class="textarea-auto-resize px-4 py-2.5 border-2 border-border rounded-lg bg-surface text-text focus:outline-none focus:border-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed resize-none"
       :class="{ 'border-red-500 focus:border-red-500': errorMessage }"
       @input="
-        $emit('update:modelValue', ($event.target as HTMLInputElement).value)
+        $emit('update:modelValue', ($event.target as HTMLTextAreaElement).value)
       "
       @blur="$emit('blur')"
     />
@@ -69,3 +69,10 @@ defineEmits<{
     </p>
   </div>
 </template>
+
+<style scoped>
+.textarea-auto-resize {
+  field-sizing: content;
+  min-height: calc(3 * 1.5em + 1.25rem); /* 3 rows minimum */
+}
+</style>

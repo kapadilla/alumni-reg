@@ -9,7 +9,7 @@ defineEmits<{
 </script>
 
 <template>
-  <nav class="h-14 w-full bg-surface border-b border-border">
+  <nav class="h-14 w-full bg-surface/95 backdrop-blur-sm border-b border-border sticky top-0 z-50">
     <div
       class="w-full max-w-7xl mx-auto px-4 md:px-6 h-full flex items-center justify-between"
     >

@@ -411,7 +411,7 @@ onMounted(() => {
     <Transition name="fade">
       <div
         v-if="showDetailsModal"
-        class="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+        class="fixed inset-0 z-1000 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
         @click.self="showDetailsModal = false"
       >
         <Transition name="scale">
