@@ -9,13 +9,19 @@ useHead({
   title: "Dashboard - UP Alumni Association - Cebu Chapter",
 });
 
-
-const { stats, activities, loadingStats, loadingActivity, fetchStats, fetchActivity } = useDashboard();
+const {
+  stats,
+  activities,
+  loadingStats,
+  loadingActivity,
+  fetchStats,
+  fetchActivity,
+} = useDashboard();
 const { admins, fetchAdmins } = useAdmins();
 const { isOnline } = useNetworkStatus();
 
 // Activity limit state (persisted in localStorage)
-const activityLimit = useLocalStorage('dashboard-activity-limit', 5);
+const activityLimit = useLocalStorage("dashboard-activity-limit", 5);
 const activityLimitOptions = [5, 10, 15, 20];
 
 // Map stats to include href for navigation
@@ -25,7 +31,7 @@ const statCards = computed(() => {
     "Pending Payment Verification": "/admin/payment-verification",
     "Approved Members": "/admin/members",
   };
-  return stats.value.map(stat => ({
+  return stats.value.map((stat) => ({
     ...stat,
     href: hrefMap[stat.label] || "#",
   }));
@@ -33,21 +39,33 @@ const statCards = computed(() => {
 
 // Helper to get admin name from email
 const getAdminName = (email: string) => {
-  const admin = admins.value.find(a => a.email === email);
-  return admin ? `${admin.firstName} ${admin.lastName}` : "Unknown Admin";
+  // If performed by system, return null (will be handled in template)
+  if (!email || email.toLowerCase() === "system") {
+    return null;
+  }
+  const admin = admins.value.find((a) => a.email === email);
+  return admin ? `${admin.firstName} ${admin.lastName}` : null;
 };
 
 // Helper function to get action chip styling (matching AdminDetailsModal)
 const getActionStyle = (type: string) => {
   const lowerType = type.toLowerCase();
-  
+
   if (lowerType.includes("verify") || lowerType.includes("verified")) {
     return "bg-secondary/15 text-secondary ring-1 ring-secondary/20";
   }
-  if (lowerType.includes("approve") || lowerType.includes("approved") || lowerType.includes("reactivate")) {
+  if (
+    lowerType.includes("approve") ||
+    lowerType.includes("approved") ||
+    lowerType.includes("reactivate")
+  ) {
     return "bg-secondary/15 text-secondary ring-1 ring-secondary/20";
   }
-  if (lowerType.includes("reject") || lowerType.includes("deactivate") || lowerType.includes("deactivated")) {
+  if (
+    lowerType.includes("reject") ||
+    lowerType.includes("deactivate") ||
+    lowerType.includes("deactivated")
+  ) {
     return "bg-red-500/15 text-red-600 dark:text-red-400 ring-1 ring-red-500/20";
   }
   if (lowerType.includes("revoke") || lowerType.includes("revoked")) {
@@ -62,31 +80,37 @@ const getActionStyle = (type: string) => {
   if (lowerType.includes("logout")) {
     return "bg-gray-500/15 text-gray-600 dark:text-gray-400 ring-1 ring-gray-500/20";
   }
-  
+
   return "bg-primary/15 text-primary ring-1 ring-primary/20";
 };
 
 // Helper function to get action icon
 const getActionIcon = (type: string) => {
   const lowerType = type.toLowerCase();
-    if (lowerType.includes("verify") || lowerType.includes("verified")) return "material-symbols:verified-rounded";
-    if (lowerType.includes("approve") || lowerType.includes("approved")) return "material-symbols:check-circle-rounded";
-    if (lowerType.includes("reject")) return "material-symbols:cancel-rounded";
-    if (lowerType.includes("revoke") || lowerType.includes("revoked")) return "material-symbols:person-remove-rounded";
-    if (lowerType.includes("reinstate") || lowerType.includes("reinstated")) return "material-symbols:person-add-rounded";
-    if (lowerType.includes("deactivate") || lowerType.includes("deactivated")) return "material-symbols:person-off-rounded";
-    if (lowerType.includes("reactivate")) return "material-symbols:person-check-rounded";
-    if (lowerType.includes("login")) return "material-symbols:login-rounded";
-    if (lowerType.includes("logout")) return "material-symbols:logout-rounded";
+  if (lowerType.includes("verify") || lowerType.includes("verified"))
+    return "material-symbols:verified-rounded";
+  if (lowerType.includes("approve") || lowerType.includes("approved"))
+    return "material-symbols:check-circle-rounded";
+  if (lowerType.includes("reject")) return "material-symbols:cancel-rounded";
+  if (lowerType.includes("revoke") || lowerType.includes("revoked"))
+    return "material-symbols:person-remove-rounded";
+  if (lowerType.includes("reinstate") || lowerType.includes("reinstated"))
+    return "material-symbols:person-add-rounded";
+  if (lowerType.includes("deactivate") || lowerType.includes("deactivated"))
+    return "material-symbols:person-off-rounded";
+  if (lowerType.includes("reactivate"))
+    return "material-symbols:person-check-rounded";
+  if (lowerType.includes("login")) return "material-symbols:login-rounded";
+  if (lowerType.includes("logout")) return "material-symbols:logout-rounded";
 
-    return "material-symbols:circle";
+  return "material-symbols:circle";
 };
 
 // Helper function to format action type display
 const formatActionType = (type: string) => {
   if (!type) return "";
   const lower = type.toLowerCase();
-  
+
   // Normalize variations
   if (lower.includes("membership") && lower.includes("revoked")) {
     return "Revoked Membership";
@@ -94,7 +118,7 @@ const formatActionType = (type: string) => {
   if (lower.includes("membership") && lower.includes("reinstated")) {
     return "Reinstated Membership";
   }
-  
+
   return type;
 };
 
@@ -111,7 +135,11 @@ const scrollToTop = () => {
 
 // Fetch data on mount
 onMounted(async () => {
-  await Promise.all([fetchStats(), fetchActivity(activityLimit.value), fetchAdmins()]);
+  await Promise.all([
+    fetchStats(),
+    fetchActivity(activityLimit.value),
+    fetchAdmins(),
+  ]);
 });
 </script>
 
@@ -129,13 +157,23 @@ onMounted(async () => {
       </div>
 
       <!-- Stats Cards -->
-      <div v-if="loadingStats" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6 md:mb-8">
-        <div v-for="i in 3" :key="i" class="bg-surface rounded-xl border border-border p-4 md:p-6 animate-pulse">
+      <div
+        v-if="loadingStats"
+        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6 md:mb-8"
+      >
+        <div
+          v-for="i in 3"
+          :key="i"
+          class="bg-surface rounded-xl border border-border p-4 md:p-6 animate-pulse"
+        >
           <div class="h-4 bg-background rounded w-1/2 mb-2" />
           <div class="h-10 bg-background rounded w-1/3" />
         </div>
       </div>
-      <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6 md:mb-8">
+      <div
+        v-else
+        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6 md:mb-8"
+      >
         <NuxtLink
           v-for="stat in statCards"
           :key="stat.label"
@@ -158,7 +196,9 @@ onMounted(async () => {
 
       <!-- Recent Activity Table -->
       <div class="bg-surface rounded-xl border border-border overflow-hidden">
-        <div class="p-4 md:p-6 border-b border-border flex items-center justify-between">
+        <div
+          class="p-4 md:p-6 border-b border-border flex items-center justify-between"
+        >
           <h2 class="text-lg md:text-xl font-semibold text-text">
             Recent Activity
           </h2>
@@ -166,9 +206,17 @@ onMounted(async () => {
             <select
               :value="activityLimit"
               class="px-3 py-2 text-sm bg-background border-2 border-border rounded-lg text-text focus:outline-none focus:border-primary hover:border-subtle transition-colors cursor-pointer"
-              @change="handleLimitChange(Number(($event.target as HTMLSelectElement).value))"
+              @change="
+                handleLimitChange(
+                  Number(($event.target as HTMLSelectElement).value),
+                )
+              "
             >
-              <option v-for="opt in activityLimitOptions" :key="opt" :value="opt">
+              <option
+                v-for="opt in activityLimitOptions"
+                :key="opt"
+                :value="opt"
+              >
                 {{ opt }} rows
               </option>
             </select>
@@ -187,15 +235,23 @@ onMounted(async () => {
 
         <!-- Loading State -->
         <div v-else-if="loadingActivity" class="p-12 text-center">
-          <Icon name="svg-spinners:ring-resize" class="size-8 text-primary mx-auto mb-4" />
+          <Icon
+            name="svg-spinners:ring-resize"
+            class="size-8 text-primary mx-auto mb-4"
+          />
           <p class="text-subtle text-sm">Loading recent activity...</p>
         </div>
 
         <!-- Empty State -->
         <div v-else-if="activities.length === 0" class="p-12 text-center">
-          <Icon name="material-symbols:history" class="size-12 text-subtle/50 mx-auto mb-4" />
+          <Icon
+            name="material-symbols:history"
+            class="size-12 text-subtle/50 mx-auto mb-4"
+          />
           <p class="text-text font-medium mb-1">No recent activity</p>
-          <p class="text-subtle text-sm">Activity will appear here as applications are processed</p>
+          <p class="text-subtle text-sm">
+            Activity will appear here as applications are processed
+          </p>
         </div>
 
         <!-- Table wrapper with horizontal scroll -->
@@ -245,7 +301,9 @@ onMounted(async () => {
                 <td
                   class="px-4 md:px-6 py-4 whitespace-nowrap text-sm text-text"
                 >
-                  <code class="px-2 py-1 text-xs font-mono bg-background rounded border border-border/50 text-subtle">
+                  <code
+                    class="px-2 py-1 text-xs font-mono bg-background rounded border border-border/50 text-subtle"
+                  >
                     {{ activity.id }}
                   </code>
                 </td>
@@ -254,7 +312,10 @@ onMounted(async () => {
                     class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-full shadow-sm"
                     :class="getActionStyle(activity.type)"
                   >
-                    <Icon :name="getActionIcon(activity.type)" class="size-3.5" />
+                    <Icon
+                      :name="getActionIcon(activity.type)"
+                      class="size-3.5"
+                    />
                     {{ formatActionType(activity.type) }}
                   </span>
                 </td>
@@ -265,8 +326,24 @@ onMounted(async () => {
                 </td>
                 <td class="px-4 md:px-6 py-4 whitespace-nowrap text-sm">
                   <div class="flex flex-col">
-                    <span class="text-text font-medium">{{ getAdminName(activity.performedBy) }}</span>
-                    <span class="text-subtle text-xs">{{ activity.performedBy }}</span>
+                    <template
+                      v-if="activity.performedBy?.toLowerCase() === 'system'"
+                    >
+                      <span class="text-text font-medium">System</span>
+                    </template>
+                    <template v-else-if="getAdminName(activity.performedBy)">
+                      <span class="text-text font-medium">{{
+                        getAdminName(activity.performedBy)
+                      }}</span>
+                      <span class="text-subtle text-xs">{{
+                        activity.performedBy
+                      }}</span>
+                    </template>
+                    <template v-else>
+                      <span class="text-text font-medium">{{
+                        activity.performedBy
+                      }}</span>
+                    </template>
                   </div>
                 </td>
                 <td
@@ -277,7 +354,7 @@ onMounted(async () => {
                 <td
                   class="px-4 md:px-6 py-4 text-sm text-subtle max-w-xs truncate"
                 >
-                  {{ activity.notes || '-' }}
+                  {{ activity.notes || "-" }}
                 </td>
               </tr>
             </tbody>
@@ -288,7 +365,9 @@ onMounted(async () => {
             v-if="activities.length > 0"
             class="px-4 md:px-6 py-4 border-t border-border flex items-center justify-between"
           >
-            <p class="text-sm text-subtle">Showing {{ activities.length }} recent activities</p>
+            <p class="text-sm text-subtle">
+              Showing {{ activities.length }} recent activities
+            </p>
           </div>
         </AdminScrollContainer>
       </div>

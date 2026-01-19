@@ -11,7 +11,6 @@ useHead({
   title: "Alumni Verification - UP Alumni Association - Cebu Chapter",
 });
 
-
 const {
   alumniApplicants,
   alumniPagination,
@@ -23,15 +22,22 @@ const {
   getAlumniDetails,
 } = useVerification();
 
-const { filterOptions, fetchFilterOptions } = useFilterOptions();
+const { filterOptions, fetchFilterOptions, fetchProvinces } =
+  useFilterOptions();
 const { isOnline } = useNetworkStatus();
 
 // Filter state
 const search = ref("");
 const ordering = ref("-date_applied");
-const dateRange = ref<{ from: string | null; to: string | null }>({ from: null, to: null });
+const dateRange = ref<{ from: string | null; to: string | null }>({
+  from: null,
+  to: null,
+});
 const degreeProgram = ref("");
 const yearGraduated = ref("");
+const campus = ref("");
+const province = ref("");
+const mentorship = ref<boolean | null>(null);
 
 // Rejection dialog state
 const showRejectDialog = ref(false);
@@ -68,6 +74,9 @@ const filterConfig = {
   showDateRange: true,
   showDegreeProgram: true,
   showYearGraduated: true,
+  showCampus: true,
+  showProvince: true,
+  showMentorship: true,
   sortOptions,
   dateRangeLabel: "Date Applied",
 };
@@ -81,6 +90,9 @@ const refreshData = () => {
     date_to: dateRange.value.to || undefined,
     degree_program: degreeProgram.value || undefined,
     year_graduated: yearGraduated.value || undefined,
+    campus: campus.value || undefined,
+    province: province.value || undefined,
+    mentorship: mentorship.value ?? undefined,
     page: alumniPagination.value.currentPage,
     limit: alumniPagination.value.limit,
   });
@@ -101,6 +113,9 @@ const handlePageChange = (page: number) => {
     date_to: dateRange.value.to || undefined,
     degree_program: degreeProgram.value || undefined,
     year_graduated: yearGraduated.value || undefined,
+    campus: campus.value || undefined,
+    province: province.value || undefined,
+    mentorship: mentorship.value ?? undefined,
     page,
     limit: alumniPagination.value.limit,
   });
@@ -115,6 +130,9 @@ const handleLimitChange = (limit: number) => {
     date_to: dateRange.value.to || undefined,
     degree_program: degreeProgram.value || undefined,
     year_graduated: yearGraduated.value || undefined,
+    campus: campus.value || undefined,
+    province: province.value || undefined,
+    mentorship: mentorship.value ?? undefined,
     page: 1,
     limit,
   });
@@ -127,6 +145,9 @@ const handleClearFilters = () => {
   dateRange.value = { from: null, to: null };
   degreeProgram.value = "";
   yearGraduated.value = "";
+  campus.value = "";
+  province.value = "";
+  mentorship.value = null;
   fetchPendingAlumni({ ordering: "-date_applied" });
 };
 
@@ -162,6 +183,7 @@ const scrollToTop = () => {
 
 onMounted(() => {
   fetchFilterOptions();
+  fetchProvinces();
   fetchPendingAlumni({ ordering: ordering.value });
 });
 </script>
@@ -174,7 +196,8 @@ onMounted(() => {
         Alumni Verification
       </h1>
       <p class="text-subtle text-sm md:text-base">
-        Verify that applicants are UP Cebu alumni before processing their membership
+        Verify that applicants are UP Cebu alumni before processing their
+        membership
       </p>
     </div>
 
@@ -220,6 +243,9 @@ onMounted(() => {
         v-model:date-range="dateRange"
         v-model:degree-program="degreeProgram"
         v-model:year-graduated="yearGraduated"
+        v-model:campus="campus"
+        v-model:province="province"
+        v-model:mentorship="mentorship"
         :filter-options="filterOptions"
         :config="filterConfig"
         @search="refreshData"
@@ -231,7 +257,10 @@ onMounted(() => {
 
       <!-- Loading State -->
       <div v-else-if="loadingAlumni" class="p-12 text-center">
-        <Icon name="svg-spinners:ring-resize" class="size-8 text-primary mx-auto mb-4" />
+        <Icon
+          name="svg-spinners:ring-resize"
+          class="size-8 text-primary mx-auto mb-4"
+        />
         <p class="text-subtle text-sm">Loading pending verifications...</p>
       </div>
 
@@ -248,112 +277,118 @@ onMounted(() => {
       <!-- Table with horizontal scroll -->
       <AdminScrollContainer v-else>
         <table class="w-full min-w-[900px]">
-            <thead class="bg-background sticky top-0 z-10">
-              <tr>
-                <th
-                  class="px-4 md:px-6 py-3 text-left text-xs font-medium text-subtle uppercase tracking-wider"
-                >
-                  ID
-                </th>
-                <AdminSortableHeader
-                  label="Name"
-                  field="first_name"
-                  :current-sort="ordering"
-                  @sort="handleSort"
-                />
-                <AdminSortableHeader
-                  label="Email"
-                  field="email"
-                  :current-sort="ordering"
-                  @sort="handleSort"
-                />
-                <th
-                  class="px-4 md:px-6 py-3 text-left text-xs font-medium text-subtle uppercase tracking-wider"
-                >
-                  Degree Program
-                </th>
-                <th
-                  class="px-4 md:px-6 py-3 text-left text-xs font-medium text-subtle uppercase tracking-wider"
-                >
-                  Year Graduated
-                </th>
-                <AdminSortableHeader
-                  label="Date Applied"
-                  field="date_applied"
-                  :current-sort="ordering"
-                  @sort="handleSort"
-                />
-                <th
-                  class="px-4 md:px-6 py-3 text-left text-xs font-medium text-subtle uppercase tracking-wider"
-                >
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-border">
-              <tr
-                v-for="applicant in alumniApplicants"
-                :key="applicant.id"
-                class="group hover:bg-background transition-all duration-200 cursor-pointer active:scale-[0.99] [&>td:first-child]:rounded-l-lg [&>td:last-child]:rounded-r-lg"
-                @click="handleView(applicant.id)"
+          <thead class="bg-background sticky top-0 z-10">
+            <tr>
+              <th
+                class="px-4 md:px-6 py-3 text-left text-xs font-medium text-subtle uppercase tracking-wider"
               >
-                <td class="px-4 md:px-6 py-4 whitespace-nowrap text-sm text-text">
-                  {{ applicant.id }}
-                </td>
-                <td
-                  class="px-4 md:px-6 py-4 whitespace-nowrap text-sm font-medium text-text"
-                >
-                  {{ applicant.name }}
-                </td>
-                <td
-                  class="px-4 md:px-6 py-4 whitespace-nowrap text-sm text-subtle"
-                >
-                  {{ applicant.email }}
-                </td>
-                <td class="px-4 md:px-6 py-4 whitespace-nowrap text-sm text-text">
-                  {{ applicant.degreeProgram }}
-                </td>
-                <td class="px-4 md:px-6 py-4 whitespace-nowrap text-sm text-text">
-                  {{ applicant.yearGraduated }}
-                </td>
-                <td
-                  class="px-4 md:px-6 py-4 whitespace-nowrap text-sm text-subtle"
-                >
-                  {{ formatDate(applicant.dateApplied) }}
-                </td>
-                <td
-                  class="px-4 md:px-6 py-4 whitespace-nowrap text-sm font-medium"
-                >
-                  <div class="flex items-center gap-2">
-                    <button
-                      class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-secondary/10 text-secondary hover:bg-secondary/20 transition-all duration-200 active:scale-95"
-                      @click.stop="handleVerify(applicant.id)"
-                      title="Verify as Alumni"
-                    >
-                      <Icon name="material-symbols:check-circle" class="size-3.5" />
-                      Verify
-                    </button>
-                    <button
-                      class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-500/20 transition-all duration-200 active:scale-95"
-                      @click.stop="openRejectDialog(applicant.id, applicant.name)"
-                      title="Reject Application"
-                    >
-                      <Icon name="material-symbols:cancel" class="size-3.5" />
-                      Reject
-                    </button>
-                    <button
-                      class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-border text-subtle hover:bg-background hover:text-text transition-all duration-200 active:scale-95"
-                      @click.stop="handleView(applicant.id)"
-                      title="View Details"
-                    >
-                      <Icon name="material-symbols:visibility" class="size-3.5" />
-                      View
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+                ID
+              </th>
+              <AdminSortableHeader
+                label="Name"
+                field="first_name"
+                :current-sort="ordering"
+                @sort="handleSort"
+              />
+              <AdminSortableHeader
+                label="Email"
+                field="email"
+                :current-sort="ordering"
+                @sort="handleSort"
+              />
+              <th
+                class="px-4 md:px-6 py-3 text-left text-xs font-medium text-subtle uppercase tracking-wider"
+              >
+                Degree Program
+              </th>
+              <th
+                class="px-4 md:px-6 py-3 text-left text-xs font-medium text-subtle uppercase tracking-wider"
+              >
+                Year Graduated
+              </th>
+              <AdminSortableHeader
+                label="Date Applied"
+                field="date_applied"
+                :current-sort="ordering"
+                @sort="handleSort"
+              />
+              <th
+                class="px-4 md:px-6 py-3 text-left text-xs font-medium text-subtle uppercase tracking-wider"
+              >
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-border">
+            <tr
+              v-for="applicant in alumniApplicants"
+              :key="applicant.id"
+              class="group hover:bg-background transition-all duration-200 cursor-pointer active:scale-[0.99] [&>td:first-child]:rounded-l-lg [&>td:last-child]:rounded-r-lg"
+              @click="handleView(applicant.id)"
+            >
+              <td class="px-4 md:px-6 py-4 whitespace-nowrap text-sm text-text">
+                {{ applicant.id }}
+              </td>
+              <td
+                class="px-4 md:px-6 py-4 whitespace-nowrap text-sm font-medium text-text"
+              >
+                {{ applicant.name }}
+              </td>
+              <td
+                class="px-4 md:px-6 py-4 whitespace-nowrap text-sm text-subtle"
+              >
+                {{ applicant.email }}
+              </td>
+              <td class="px-4 md:px-6 py-4 whitespace-nowrap text-sm text-text">
+                {{ applicant.degreeProgram }}
+              </td>
+              <td class="px-4 md:px-6 py-4 whitespace-nowrap text-sm text-text">
+                <template v-if="applicant.yearGraduated">{{
+                  applicant.yearGraduated
+                }}</template>
+                <span v-else class="text-subtle italic">N/A</span>
+              </td>
+              <td
+                class="px-4 md:px-6 py-4 whitespace-nowrap text-sm text-subtle"
+              >
+                {{ formatDate(applicant.dateApplied) }}
+              </td>
+              <td
+                class="px-4 md:px-6 py-4 whitespace-nowrap text-sm font-medium"
+              >
+                <div class="flex items-center gap-2">
+                  <button
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-secondary/10 text-secondary hover:bg-secondary/20 transition-all duration-200 active:scale-95"
+                    @click.stop="handleVerify(applicant.id)"
+                    title="Verify as Alumni"
+                  >
+                    <Icon
+                      name="material-symbols:check-circle"
+                      class="size-3.5"
+                    />
+                    Verify
+                  </button>
+                  <button
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-500/20 transition-all duration-200 active:scale-95"
+                    @click.stop="openRejectDialog(applicant.id, applicant.name)"
+                    title="Reject Application"
+                  >
+                    <Icon name="material-symbols:cancel" class="size-3.5" />
+                    Reject
+                  </button>
+                  <button
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-border text-subtle hover:bg-background hover:text-text transition-all duration-200 active:scale-95"
+                    @click.stop="handleView(applicant.id)"
+                    title="View Details"
+                  >
+                    <Icon name="material-symbols:visibility" class="size-3.5" />
+                    View
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </AdminScrollContainer>
 
       <!-- Pagination -->
@@ -397,38 +432,47 @@ onMounted(() => {
       :loading="loadingDetails"
     >
       <AdminViewAlumniDetails :applicant="viewingApplicant" />
-      
+
       <template #footer>
         <div class="flex items-center gap-2 w-full">
-           <template v-if="viewingApplicant">
-             <button
-               class="px-4 py-2 text-sm text-subtle hover:text-text hover:bg-background rounded-lg transition-colors mr-auto"
-               @click="showViewModal = false"
-             >
-               Close
-             </button>
-             
-             <button
-               class="px-4 py-2 text-sm text-red-600 hover:bg-red-500/10 rounded-lg transition-colors"
-               @click="openRejectDialog(viewingApplicant.id, `${viewingApplicant.personalDetails.firstName} ${viewingApplicant.personalDetails.lastName}`); showViewModal = false;"
-             >
-               Reject
-             </button>
-             
-             <button
-               class="px-4 py-2 text-sm bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
-               @click="handleVerify(viewingApplicant.id); showViewModal = false;"
-             >
-               Verify Application
-             </button>
-           </template>
-           <button
-             v-else
-             class="px-4 py-2 text-sm text-subtle hover:text-text hover:bg-background rounded-lg transition-colors ml-auto"
-             @click="showViewModal = false"
-           >
-             Close
-           </button>
+          <template v-if="viewingApplicant">
+            <button
+              class="px-4 py-2 text-sm text-subtle hover:text-text hover:bg-background rounded-lg transition-colors mr-auto"
+              @click="showViewModal = false"
+            >
+              Close
+            </button>
+
+            <button
+              class="px-4 py-2 text-sm text-red-600 hover:bg-red-500/10 rounded-lg transition-colors"
+              @click="
+                openRejectDialog(
+                  viewingApplicant.id,
+                  `${viewingApplicant.personalDetails.firstName} ${viewingApplicant.personalDetails.lastName}`,
+                );
+                showViewModal = false;
+              "
+            >
+              Reject
+            </button>
+
+            <button
+              class="px-4 py-2 text-sm bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
+              @click="
+                handleVerify(viewingApplicant.id);
+                showViewModal = false;
+              "
+            >
+              Verify Application
+            </button>
+          </template>
+          <button
+            v-else
+            class="px-4 py-2 text-sm text-subtle hover:text-text hover:bg-background rounded-lg transition-colors ml-auto"
+            @click="showViewModal = false"
+          >
+            Close
+          </button>
         </div>
       </template>
     </AdminModalAdminViewModal>

@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, watch, onMounted } from 'vue';
-import { useForm } from '@tanstack/vue-form';
+import { ref, watch, onMounted } from "vue";
+import { useForm } from "@tanstack/vue-form";
 import {
   MapPinIcon,
   AcademicCapIcon,
@@ -8,18 +8,19 @@ import {
   BuildingLibraryIcon,
   BanknotesIcon,
   SparklesIcon,
-} from '@heroicons/vue/24/solid';
+} from "@heroicons/vue/24/solid";
 
-import FormInput from '~/components/form/Input.vue';
-import FormSelect from '~/components/form/Select.vue';
-import FormCheckbox from '~/components/form/Checkbox.vue';
-import FormFileInput from '~/components/form/FileInput.vue';
-import FormRadioTileGroup from '~/components/form/RadioTileGroup.vue';
-import FormTextarea from '~/components/form/Textarea.vue';
-import FormChipGroup from '~/components/form/ChipGroup.vue';
+import FormInput from "~/components/form/Input.vue";
+import FormSelect from "~/components/form/Select.vue";
+import FormCheckbox from "~/components/form/Checkbox.vue";
+import FormFileInput from "~/components/form/FileInput.vue";
+import FormRadioTileGroup from "~/components/form/RadioTileGroup.vue";
+import FormTextarea from "~/components/form/Textarea.vue";
+import FormChipGroup from "~/components/form/ChipGroup.vue";
 
 import {
   type LocationOption,
+  type RegistrationFormValues,
   registrationFormDefaults,
   registrationSchema,
   fieldSchemas,
@@ -27,15 +28,16 @@ import {
   industryTracks,
   paymentOptions,
   mentorshipFormatOptions,
-} from '~/types/registration';
-import { handleRegistrationSubmit } from '~/utils/registrationSubmit';
+  campusOptions,
+} from "~/types/registration";
+import { handleRegistrationSubmit } from "~/utils/registrationSubmit";
 
 // Helper to extract error message from TanStack Form errors
 const getErrorMessage = (errors: unknown[]): string | undefined => {
   if (!errors || errors.length === 0) return undefined;
   const error = errors[0];
-  if (typeof error === 'string') return error;
-  if (error && typeof error === 'object' && 'message' in error) {
+  if (typeof error === "string") return error;
+  if (error && typeof error === "object" && "message" in error) {
     return (error as { message: string }).message;
   }
   return String(error);
@@ -51,15 +53,21 @@ const loadingCities = ref(false);
 const loadingBarangays = ref(false);
 
 // Track selected codes for API lookups (codes are needed to fetch child data)
-const selectedProvinceCode = ref('');
-const selectedCityCode = ref('');
+const selectedProvinceCode = ref("");
+const selectedCityCode = ref("");
+
+// Router for navigation
+const router = useRouter();
 
 // Initialize TanStack Form
 const form = useForm({
   defaultValues: registrationFormDefaults,
   onSubmit: async ({ value }) => {
     console.log(value);
-    await handleRegistrationSubmit(value);
+    const success = await handleRegistrationSubmit(value);
+    if (success) {
+      router.push("/success");
+    }
   },
 });
 
@@ -67,32 +75,50 @@ const form = useForm({
 const handleFormSubmit = async () => {
   // Get current form values
   const value = form.state.values;
-  
+
   // Validate with Zod schema (includes all conditional validation)
   const result = registrationSchema.safeParse(value);
-  
+
   if (!result.success) {
     // Extract and display validation errors
-    const errors = result.error.issues.map(issue => `${issue.path.join('.')}: ${issue.message}`);
-    console.error('Validation errors:', errors);
-    
+    const errors = result.error.issues.map(
+      (issue) => `${issue.path.join(".")}: ${issue.message}`,
+    );
+    console.error("Validation errors:", errors);
+
+    // Set field-level errors on the form so they display in the UI
+    for (const issue of result.error.issues) {
+      const fieldName = issue.path[0] as keyof RegistrationFormValues;
+      if (fieldName) {
+        form.setFieldMeta(fieldName, (meta) => ({
+          ...meta,
+          errors: [issue.message],
+          errorMap: { onChange: issue.message },
+          isTouched: true,
+        }));
+      }
+    }
+
     // Get the first error field path and scroll to it
     const firstErrorPath = result.error.issues[0]?.path[0];
     if (firstErrorPath) {
       const errorElement = document.getElementById(String(firstErrorPath));
       if (errorElement) {
-        errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        errorElement.scrollIntoView({ behavior: "smooth", block: "center" });
         // Focus the element after scrolling
         setTimeout(() => errorElement.focus(), 300);
       }
     }
-    
-    // Show error toast
-    const { toast } = await import('vue-sonner');
-    toast.error('Please complete all required fields before submitting.');
+
+    // Show error toast with count
+    const { toast } = await import("vue-sonner");
+    const errorCount = result.error.issues.length;
+    toast.error(
+      `Please fix ${errorCount} error${errorCount > 1 ? "s" : ""} before submitting.`,
+    );
     return;
   }
-  
+
   // Validation passed - submit the form
   await form.handleSubmit();
 };
@@ -101,20 +127,20 @@ const handleFormSubmit = async () => {
 onMounted(async () => {
   try {
     loadingProvinces.value = true;
-    const response = await fetch('https://psgc.gitlab.io/api/provinces/');
+    const response = await fetch("https://psgc.gitlab.io/api/provinces/");
     const data = await response.json();
 
     provinces.value = data
       .map((item: any) => ({
         value: item.name, // Store name as value (for form)
         label: item.name,
-        code: item.code,  // Keep code for API lookups
+        code: item.code, // Keep code for API lookups
       }))
       .sort((a: LocationOption, b: LocationOption) =>
-        a.label.localeCompare(b.label)
+        a.label.localeCompare(b.label),
       );
   } catch (error) {
-    console.error('Error fetching provinces:', error);
+    console.error("Error fetching provinces:", error);
   } finally {
     loadingProvinces.value = false;
   }
@@ -122,14 +148,14 @@ onMounted(async () => {
 
 // Helper function to find province code by name
 const getProvinceCode = (name: string): string => {
-  const province = provinces.value.find(p => p.value === name);
-  return province?.code || '';
+  const province = provinces.value.find((p) => p.value === name);
+  return province?.code || "";
 };
 
 // Helper function to find city code by name
 const getCityCode = (name: string): string => {
-  const city = cities.value.find(c => c.value === name);
-  return city?.code || '';
+  const city = cities.value.find((c) => c.value === name);
+  return city?.code || "";
 };
 
 // Watch province code changes to fetch cities
@@ -137,9 +163,9 @@ watch(selectedProvinceCode, async (newProvinceCode) => {
   // Reset dependent fields
   cities.value = [];
   barangays.value = [];
-  selectedCityCode.value = '';
-  form.setFieldValue('city', '');
-  form.setFieldValue('barangay', '');
+  selectedCityCode.value = "";
+  form.setFieldValue("city", "");
+  form.setFieldValue("barangay", "");
 
   if (!newProvinceCode) {
     return;
@@ -148,7 +174,7 @@ watch(selectedProvinceCode, async (newProvinceCode) => {
   try {
     loadingCities.value = true;
     const response = await fetch(
-      `https://psgc.gitlab.io/api/provinces/${newProvinceCode}/cities-municipalities/`
+      `https://psgc.gitlab.io/api/provinces/${newProvinceCode}/cities-municipalities/`,
     );
     const data = await response.json();
 
@@ -156,13 +182,13 @@ watch(selectedProvinceCode, async (newProvinceCode) => {
       .map((item: any) => ({
         value: item.name, // Store name as value (for form)
         label: item.name,
-        code: item.code,  // Keep code for API lookups
+        code: item.code, // Keep code for API lookups
       }))
       .sort((a: LocationOption, b: LocationOption) =>
-        a.label.localeCompare(b.label)
+        a.label.localeCompare(b.label),
       );
   } catch (error) {
-    console.error('Error fetching cities:', error);
+    console.error("Error fetching cities:", error);
     cities.value = [];
   } finally {
     loadingCities.value = false;
@@ -173,7 +199,7 @@ watch(selectedProvinceCode, async (newProvinceCode) => {
 watch(selectedCityCode, async (newCityCode) => {
   // Reset barangay field
   barangays.value = [];
-  form.setFieldValue('barangay', '');
+  form.setFieldValue("barangay", "");
 
   if (!newCityCode) {
     return;
@@ -182,7 +208,7 @@ watch(selectedCityCode, async (newCityCode) => {
   try {
     loadingBarangays.value = true;
     const response = await fetch(
-      `https://psgc.gitlab.io/api/cities-municipalities/${newCityCode}/barangays/`
+      `https://psgc.gitlab.io/api/cities-municipalities/${newCityCode}/barangays/`,
     );
     const data = await response.json();
 
@@ -190,13 +216,13 @@ watch(selectedCityCode, async (newCityCode) => {
       .map((item: any) => ({
         value: item.name, // Store name as value (for form)
         label: item.name,
-        code: item.code,  // Keep code for reference
+        code: item.code, // Keep code for reference
       }))
       .sort((a: LocationOption, b: LocationOption) =>
-        a.label.localeCompare(b.label)
+        a.label.localeCompare(b.label),
       );
   } catch (error) {
-    console.error('Error fetching barangays:', error);
+    console.error("Error fetching barangays:", error);
     barangays.value = [];
   } finally {
     loadingBarangays.value = false;
@@ -216,30 +242,48 @@ watch(selectedCityCode, async (newCityCode) => {
         </p>
       </div>
 
-      <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
+      <div
+        class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4"
+      >
         <!-- First Name -->
-        <form.Field name="firstName" :validators="{ onBlur: fieldSchemas.firstName }" v-slot="{ field, state }">
+        <form.Field
+          name="firstName"
+          :validators="{ onBlur: fieldSchemas.firstName }"
+          v-slot="{ field, state }"
+        >
           <FormInput
             :id="field.name"
             :name="field.name"
             label="First Name"
             hint="As shown in official records"
             :model-value="field.state.value"
-            :error="state.meta.isTouched ? getErrorMessage(state.meta.errors) : undefined"
+            :error="
+              state.meta.isTouched
+                ? getErrorMessage(state.meta.errors)
+                : undefined
+            "
             @update:model-value="field.handleChange"
             @blur="field.handleBlur"
           />
         </form.Field>
 
         <!-- Last Name -->
-        <form.Field name="lastName" :validators="{ onBlur: fieldSchemas.lastName }" v-slot="{ field, state }">
+        <form.Field
+          name="lastName"
+          :validators="{ onBlur: fieldSchemas.lastName }"
+          v-slot="{ field, state }"
+        >
           <FormInput
             :id="field.name"
             :name="field.name"
             label="Last Name"
             hint="As shown in official records"
             :model-value="field.state.value"
-            :error="state.meta.isTouched ? getErrorMessage(state.meta.errors) : undefined"
+            :error="
+              state.meta.isTouched
+                ? getErrorMessage(state.meta.errors)
+                : undefined
+            "
             @update:model-value="field.handleChange"
             @blur="field.handleBlur"
           />
@@ -254,7 +298,11 @@ watch(selectedCityCode, async (newCityCode) => {
             hint="Leave blank if none"
             :required="false"
             :model-value="field.state.value"
-            :error="state.meta.isTouched ? getErrorMessage(state.meta.errors) : undefined"
+            :error="
+              state.meta.isTouched
+                ? getErrorMessage(state.meta.errors)
+                : undefined
+            "
             @update:model-value="field.handleChange"
             @blur="field.handleBlur"
           />
@@ -269,7 +317,11 @@ watch(selectedCityCode, async (newCityCode) => {
             hint="e.g., Jr., Sr., III"
             :required="false"
             :model-value="field.state.value"
-            :error="state.meta.isTouched ? getErrorMessage(state.meta.errors) : undefined"
+            :error="
+              state.meta.isTouched
+                ? getErrorMessage(state.meta.errors)
+                : undefined
+            "
             @update:model-value="field.handleChange"
             @blur="field.handleBlur"
           />
@@ -287,7 +339,11 @@ watch(selectedCityCode, async (newCityCode) => {
               hint="Surname at graduation if different"
               :required="false"
               :model-value="field.state.value"
-              :error="state.meta.isTouched ? getErrorMessage(state.meta.errors) : undefined"
+              :error="
+                state.meta.isTouched
+                  ? getErrorMessage(state.meta.errors)
+                  : undefined
+              "
               @update:model-value="field.handleChange"
               @blur="field.handleBlur"
             />
@@ -295,7 +351,11 @@ watch(selectedCityCode, async (newCityCode) => {
         </form.Field>
 
         <!-- Date of Birth -->
-        <form.Field name="dateOfBirth" :validators="{ onBlur: fieldSchemas.dateOfBirth }" v-slot="{ field, state }">
+        <form.Field
+          name="dateOfBirth"
+          :validators="{ onBlur: fieldSchemas.dateOfBirth }"
+          v-slot="{ field, state }"
+        >
           <div class="sm:col-span-1">
             <FormInput
               :id="field.name"
@@ -304,7 +364,11 @@ watch(selectedCityCode, async (newCityCode) => {
               type="date"
               hint="MM/DD/YYYY"
               :model-value="field.state.value"
-              :error="state.meta.isTouched ? getErrorMessage(state.meta.errors) : undefined"
+              :error="
+                state.meta.isTouched
+                  ? getErrorMessage(state.meta.errors)
+                  : undefined
+              "
               @update:model-value="field.handleChange"
               @blur="field.handleBlur"
             />
@@ -315,14 +379,17 @@ watch(selectedCityCode, async (newCityCode) => {
       <!-- Contact & Location -->
       <div>
         <h3 class="flex items-center gap-2 text-lg font-semibold text mb-4">
-          <MapPinIcon class="w-5 h-5 text-primary mb-0.5" />Contact &
-          Location
+          <MapPinIcon class="w-5 h-5 text-primary mb-0.5" />Contact & Location
         </h3>
 
         <div class="space-y-4">
           <div class="grid grid-cols-2 sm:grid-cols-2 gap-4">
             <!-- Email -->
-            <form.Field name="email" :validators="{ onBlur: fieldSchemas.email }" v-slot="{ field, state }">
+            <form.Field
+              name="email"
+              :validators="{ onBlur: fieldSchemas.email }"
+              v-slot="{ field, state }"
+            >
               <FormInput
                 :id="field.name"
                 :name="field.name"
@@ -330,14 +397,22 @@ watch(selectedCityCode, async (newCityCode) => {
                 type="email"
                 hint="Use a personal email, not your UP email"
                 :model-value="field.state.value"
-                :error="state.meta.isTouched ? getErrorMessage(state.meta.errors) : undefined"
+                :error="
+                  state.meta.isTouched
+                    ? getErrorMessage(state.meta.errors)
+                    : undefined
+                "
                 @update:model-value="field.handleChange"
                 @blur="field.handleBlur"
               />
             </form.Field>
 
             <!-- Mobile Number -->
-            <form.Field name="mobileNumber" :validators="{ onBlur: fieldSchemas.mobileNumber }" v-slot="{ field, state }">
+            <form.Field
+              name="mobileNumber"
+              :validators="{ onBlur: fieldSchemas.mobileNumber }"
+              v-slot="{ field, state }"
+            >
               <FormInput
                 :id="field.name"
                 :name="field.name"
@@ -345,7 +420,11 @@ watch(selectedCityCode, async (newCityCode) => {
                 type="tel"
                 hint="09XXXXXXXXX"
                 :model-value="field.state.value"
-                :error="state.meta.isTouched ? getErrorMessage(state.meta.errors) : undefined"
+                :error="
+                  state.meta.isTouched
+                    ? getErrorMessage(state.meta.errors)
+                    : undefined
+                "
                 @update:model-value="field.handleChange"
                 @blur="field.handleBlur"
               />
@@ -353,14 +432,22 @@ watch(selectedCityCode, async (newCityCode) => {
           </div>
 
           <!-- Current Address -->
-          <form.Field name="currentAddress" :validators="{ onBlur: fieldSchemas.currentAddress }" v-slot="{ field, state }">
+          <form.Field
+            name="currentAddress"
+            :validators="{ onBlur: fieldSchemas.currentAddress }"
+            v-slot="{ field, state }"
+          >
             <FormInput
               :id="field.name"
               :name="field.name"
               label="Current Address"
               hint="Unit, Street, Subdivision"
               :model-value="field.state.value"
-              :error="state.meta.isTouched ? getErrorMessage(state.meta.errors) : undefined"
+              :error="
+                state.meta.isTouched
+                  ? getErrorMessage(state.meta.errors)
+                  : undefined
+              "
               @update:model-value="field.handleChange"
               @blur="field.handleBlur"
             />
@@ -368,7 +455,11 @@ watch(selectedCityCode, async (newCityCode) => {
 
           <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <!-- Province -->
-            <form.Field name="province" :validators="{ onBlur: fieldSchemas.province }" v-slot="{ field, state }">
+            <form.Field
+              name="province"
+              :validators="{ onBlur: fieldSchemas.province }"
+              v-slot="{ field, state }"
+            >
               <FormSelect
                 :id="field.name"
                 :name="field.name"
@@ -377,14 +468,27 @@ watch(selectedCityCode, async (newCityCode) => {
                 :options="provinces"
                 :loading="loadingProvinces"
                 :model-value="field.state.value"
-                :error="state.meta.isTouched ? getErrorMessage(state.meta.errors) : undefined"
-                @update:model-value="(val) => { field.handleChange(val); selectedProvinceCode = getProvinceCode(val); }"
+                :error="
+                  state.meta.isTouched
+                    ? getErrorMessage(state.meta.errors)
+                    : undefined
+                "
+                @update:model-value="
+                  (val) => {
+                    field.handleChange(val);
+                    selectedProvinceCode = getProvinceCode(val);
+                  }
+                "
                 @blur="field.handleBlur"
               />
             </form.Field>
 
             <!-- City -->
-            <form.Field name="city" :validators="{ onBlur: fieldSchemas.city }" v-slot="{ field, state }">
+            <form.Field
+              name="city"
+              :validators="{ onBlur: fieldSchemas.city }"
+              v-slot="{ field, state }"
+            >
               <FormSelect
                 :id="field.name"
                 :name="field.name"
@@ -394,14 +498,27 @@ watch(selectedCityCode, async (newCityCode) => {
                 :loading="loadingCities"
                 :disabled="cities.length === 0"
                 :model-value="field.state.value"
-                :error="state.meta.isTouched ? getErrorMessage(state.meta.errors) : undefined"
-                @update:model-value="(val) => { field.handleChange(val); selectedCityCode = getCityCode(val); }"
+                :error="
+                  state.meta.isTouched
+                    ? getErrorMessage(state.meta.errors)
+                    : undefined
+                "
+                @update:model-value="
+                  (val) => {
+                    field.handleChange(val);
+                    selectedCityCode = getCityCode(val);
+                  }
+                "
                 @blur="field.handleBlur"
               />
             </form.Field>
 
             <!-- Barangay -->
-            <form.Field name="barangay" :validators="{ onBlur: fieldSchemas.barangay }" v-slot="{ field, state }">
+            <form.Field
+              name="barangay"
+              :validators="{ onBlur: fieldSchemas.barangay }"
+              v-slot="{ field, state }"
+            >
               <FormSelect
                 :id="field.name"
                 :name="field.name"
@@ -411,21 +528,33 @@ watch(selectedCityCode, async (newCityCode) => {
                 :loading="loadingBarangays"
                 :disabled="barangays.length === 0"
                 :model-value="field.state.value"
-                :error="state.meta.isTouched ? getErrorMessage(state.meta.errors) : undefined"
+                :error="
+                  state.meta.isTouched
+                    ? getErrorMessage(state.meta.errors)
+                    : undefined
+                "
                 @update:model-value="field.handleChange"
                 @blur="field.handleBlur"
               />
             </form.Field>
 
             <!-- Zip Code -->
-            <form.Field name="zipCode" :validators="{ onBlur: fieldSchemas.zipCode }" v-slot="{ field, state }">
+            <form.Field
+              name="zipCode"
+              :validators="{ onBlur: fieldSchemas.zipCode }"
+              v-slot="{ field, state }"
+            >
               <FormInput
                 :id="field.name"
                 :name="field.name"
                 label="Zip Code"
                 maxlength="4"
                 :model-value="field.state.value"
-                :error="state.meta.isTouched ? getErrorMessage(state.meta.errors) : undefined"
+                :error="
+                  state.meta.isTouched
+                    ? getErrorMessage(state.meta.errors)
+                    : undefined
+                "
                 @update:model-value="field.handleChange"
                 @blur="field.handleBlur"
               />
@@ -440,20 +569,51 @@ watch(selectedCityCode, async (newCityCode) => {
       <div>
         <h2 class="text-2xl font-bold text mb-2">Academic Status</h2>
         <p class="text-subtle">
-          Please provide your academic information from UP Cebu.
+          Please provide your academic information from UP.
         </p>
       </div>
 
       <div class="space-y-4">
+        <!-- Campus -->
+        <form.Field
+          name="campus"
+          :validators="{ onBlur: fieldSchemas.campus }"
+          v-slot="{ field, state }"
+        >
+          <FormSelect
+            :id="field.name"
+            :name="field.name"
+            label="Campus"
+            placeholder="Select Campus"
+            :options="campusOptions"
+            :model-value="field.state.value"
+            :error="
+              state.meta.isTouched
+                ? getErrorMessage(state.meta.errors)
+                : undefined
+            "
+            @update:model-value="field.handleChange"
+            @blur="field.handleBlur"
+          />
+        </form.Field>
+
         <!-- Degree Program -->
-        <form.Field name="degreeProgram" :validators="{ onBlur: fieldSchemas.degreeProgram }" v-slot="{ field, state }">
+        <form.Field
+          name="degreeProgram"
+          :validators="{ onBlur: fieldSchemas.degreeProgram }"
+          v-slot="{ field, state }"
+        >
           <FormInput
             :id="field.name"
             :name="field.name"
             label="Degree Program"
             hint="e.g., BS Computer Science"
             :model-value="field.state.value"
-            :error="state.meta.isTouched ? getErrorMessage(state.meta.errors) : undefined"
+            :error="
+              state.meta.isTouched
+                ? getErrorMessage(state.meta.errors)
+                : undefined
+            "
             @update:model-value="field.handleChange"
             @blur="field.handleBlur"
           />
@@ -461,7 +621,11 @@ watch(selectedCityCode, async (newCityCode) => {
 
         <div class="grid grid-cols-2 sm:grid-cols-2 gap-4">
           <!-- Year Graduated -->
-          <form.Field name="yearGraduated" :validators="{ onBlur: fieldSchemas.yearGraduated }" v-slot="{ field, state }">
+          <form.Field
+            name="yearGraduated"
+            :validators="{ onBlur: fieldSchemas.yearGraduated }"
+            v-slot="{ field, state }"
+          >
             <FormInput
               :id="field.name"
               :name="field.name"
@@ -470,7 +634,11 @@ watch(selectedCityCode, async (newCityCode) => {
               :required="false"
               maxlength="4"
               :model-value="field.state.value"
-              :error="state.meta.isTouched ? getErrorMessage(state.meta.errors) : undefined"
+              :error="
+                state.meta.isTouched
+                  ? getErrorMessage(state.meta.errors)
+                  : undefined
+              "
               @update:model-value="field.handleChange"
               @blur="field.handleBlur"
             />
@@ -485,7 +653,11 @@ watch(selectedCityCode, async (newCityCode) => {
               hint="e.g., 2016-12345"
               :required="false"
               :model-value="field.state.value"
-              :error="state.meta.isTouched ? getErrorMessage(state.meta.errors) : undefined"
+              :error="
+                state.meta.isTouched
+                  ? getErrorMessage(state.meta.errors)
+                  : undefined
+              "
               @update:model-value="field.handleChange"
               @blur="field.handleBlur"
             />
@@ -514,7 +686,11 @@ watch(selectedCityCode, async (newCityCode) => {
               label="Current Employer"
               :required="false"
               :model-value="field.state.value"
-              :error="state.meta.isTouched ? getErrorMessage(state.meta.errors) : undefined"
+              :error="
+                state.meta.isTouched
+                  ? getErrorMessage(state.meta.errors)
+                  : undefined
+              "
               @update:model-value="field.handleChange"
               @blur="field.handleBlur"
             />
@@ -528,7 +704,11 @@ watch(selectedCityCode, async (newCityCode) => {
               label="Industry"
               :required="false"
               :model-value="field.state.value"
-              :error="state.meta.isTouched ? getErrorMessage(state.meta.errors) : undefined"
+              :error="
+                state.meta.isTouched
+                  ? getErrorMessage(state.meta.errors)
+                  : undefined
+              "
               @update:model-value="field.handleChange"
               @blur="field.handleBlur"
             />
@@ -545,7 +725,11 @@ watch(selectedCityCode, async (newCityCode) => {
               label="Job Title"
               :required="false"
               :model-value="field.state.value"
-              :error="state.meta.isTouched ? getErrorMessage(state.meta.errors) : undefined"
+              :error="
+                state.meta.isTouched
+                  ? getErrorMessage(state.meta.errors)
+                  : undefined
+              "
               @update:model-value="field.handleChange"
               @blur="field.handleBlur"
             />
@@ -560,7 +744,11 @@ watch(selectedCityCode, async (newCityCode) => {
               type="number"
               :required="false"
               :model-value="field.state.value"
-              :error="state.meta.isTouched ? getErrorMessage(state.meta.errors) : undefined"
+              :error="
+                state.meta.isTouched
+                  ? getErrorMessage(state.meta.errors)
+                  : undefined
+              "
               @update:model-value="field.handleChange"
               @blur="field.handleBlur"
             />
@@ -580,7 +768,11 @@ watch(selectedCityCode, async (newCityCode) => {
               :id="field.name"
               :name="field.name"
               :model-value="field.state.value"
-              :error="state.meta.isTouched ? getErrorMessage(state.meta.errors) : undefined"
+              :error="
+                state.meta.isTouched
+                  ? getErrorMessage(state.meta.errors)
+                  : undefined
+              "
               @update:model-value="field.handleChange"
               @blur="field.handleBlur"
             >
@@ -608,8 +800,15 @@ watch(selectedCityCode, async (newCityCode) => {
                 </h4>
 
                 <!-- Mentorship Areas -->
-                <form.Field name="mentorshipAreas" v-slot="{ field, state }">
-                  <form.Field name="mentorshipAreasOther" v-slot="{ field: otherField }">
+                <form.Field
+                  name="mentorshipAreas"
+                  :validators="{ onBlur: fieldSchemas.mentorshipAreas }"
+                  v-slot="{ field, state }"
+                >
+                  <form.Field
+                    name="mentorshipAreasOther"
+                    v-slot="{ field: otherField }"
+                  >
                     <FormChipGroup
                       :id="field.name"
                       :name="field.name"
@@ -620,7 +819,11 @@ watch(selectedCityCode, async (newCityCode) => {
                       :options="mentorshipAreas"
                       :model-value="field.state.value"
                       :other-value="otherField.state.value"
-                      :error="state.meta.isTouched ? getErrorMessage(state.meta.errors) : undefined"
+                      :error="
+                        state.meta.isTouched
+                          ? getErrorMessage(state.meta.errors)
+                          : undefined
+                      "
                       @update:model-value="field.handleChange"
                       @update:other-value="otherField.handleChange"
                       @blur="field.handleBlur"
@@ -629,8 +832,15 @@ watch(selectedCityCode, async (newCityCode) => {
                 </form.Field>
 
                 <!-- Industry Tracks -->
-                <form.Field name="mentorshipIndustryTracks" v-slot="{ field, state }">
-                  <form.Field name="mentorshipIndustryTracksOther" v-slot="{ field: otherField }">
+                <form.Field
+                  name="mentorshipIndustryTracks"
+                  :validators="{ onBlur: fieldSchemas.mentorshipIndustryTracks }"
+                  v-slot="{ field, state }"
+                >
+                  <form.Field
+                    name="mentorshipIndustryTracksOther"
+                    v-slot="{ field: otherField }"
+                  >
                     <FormChipGroup
                       :id="field.name"
                       :name="field.name"
@@ -641,7 +851,11 @@ watch(selectedCityCode, async (newCityCode) => {
                       :options="industryTracks"
                       :model-value="field.state.value"
                       :other-value="otherField.state.value"
-                      :error="state.meta.isTouched ? getErrorMessage(state.meta.errors) : undefined"
+                      :error="
+                        state.meta.isTouched
+                          ? getErrorMessage(state.meta.errors)
+                          : undefined
+                      "
                       @update:model-value="field.handleChange"
                       @update:other-value="otherField.handleChange"
                       @blur="field.handleBlur"
@@ -651,7 +865,11 @@ watch(selectedCityCode, async (newCityCode) => {
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <!-- Mentorship Format -->
-                  <form.Field name="mentorshipFormat" v-slot="{ field, state }">
+                  <form.Field
+                    name="mentorshipFormat"
+                    :validators="{ onBlur: fieldSchemas.mentorshipFormat }"
+                    v-slot="{ field, state }"
+                  >
                     <FormSelect
                       :id="field.name"
                       :name="field.name"
@@ -660,14 +878,22 @@ watch(selectedCityCode, async (newCityCode) => {
                       :required="true"
                       :options="mentorshipFormatOptions"
                       :model-value="field.state.value"
-                      :error="state.meta.isTouched ? getErrorMessage(state.meta.errors) : undefined"
+                      :error="
+                        state.meta.isTouched
+                          ? getErrorMessage(state.meta.errors)
+                          : undefined
+                      "
                       @update:model-value="field.handleChange"
                       @blur="field.handleBlur"
                     />
                   </form.Field>
 
                   <!-- Availability -->
-                  <form.Field name="mentorshipAvailability" v-slot="{ field, state }">
+                  <form.Field
+                    name="mentorshipAvailability"
+                    :validators="{ onBlur: fieldSchemas.mentorshipAvailability }"
+                    v-slot="{ field, state }"
+                  >
                     <FormInput
                       :id="field.name"
                       :name="field.name"
@@ -675,7 +901,11 @@ watch(selectedCityCode, async (newCityCode) => {
                       type="number"
                       :required="true"
                       :model-value="field.state.value"
-                      :error="state.meta.isTouched ? getErrorMessage(state.meta.errors) : undefined"
+                      :error="
+                        state.meta.isTouched
+                          ? getErrorMessage(state.meta.errors)
+                          : undefined
+                      "
                       @update:model-value="field.handleChange"
                       @blur="field.handleBlur"
                     />
@@ -697,14 +927,22 @@ watch(selectedCityCode, async (newCityCode) => {
 
       <div class="space-y-4">
         <!-- Payment Method -->
-        <form.Field name="paymentMethod" :validators="{ onBlur: fieldSchemas.paymentMethod }" v-slot="{ field, state }">
+        <form.Field
+          name="paymentMethod"
+          :validators="{ onBlur: fieldSchemas.paymentMethod }"
+          v-slot="{ field, state }"
+        >
           <FormRadioTileGroup
             :id="field.name"
             :name="field.name"
             label="Payment Method"
             :options="paymentOptions"
             :model-value="field.state.value"
-            :error="state.meta.isTouched ? getErrorMessage(state.meta.errors) : undefined"
+            :error="
+              state.meta.isTouched
+                ? getErrorMessage(state.meta.errors)
+                : undefined
+            "
             @update:model-value="field.handleChange"
             @blur="field.handleBlur"
           />
@@ -722,21 +960,35 @@ watch(selectedCityCode, async (newCityCode) => {
             leave-to-class="opacity-0 -translate-y-2"
           >
             <!-- GCash Payment Details -->
-            <div v-if="values.paymentMethod === 'gcash'" key="gcash" class="space-y-4 p-4">
-              <h3 class="flex items-center gap-2 text-lg font-semibold text mb-4">
+            <div
+              v-if="values.paymentMethod === 'gcash'"
+              key="gcash"
+              class="space-y-4 p-4"
+            >
+              <h3
+                class="flex items-center gap-2 text-lg font-semibold text mb-4"
+              >
                 <DevicePhoneMobileIcon class="w-5 h-5 text-primary mb-0.5" />
                 GCash Payment Details
               </h3>
 
               <!-- GCash Reference Number -->
-              <form.Field name="gcashReferenceNumber" :validators="{ onBlur: fieldSchemas.gcashReferenceNumber }" v-slot="{ field, state }">
+              <form.Field
+                name="gcashReferenceNumber"
+                :validators="{ onBlur: fieldSchemas.gcashReferenceNumber }"
+                v-slot="{ field, state }"
+              >
                 <FormInput
                   :id="field.name"
                   :name="field.name"
                   label="GCash Reference Number"
                   hint="13-digit reference number from your GCash transaction"
                   :model-value="field.state.value"
-                  :error="state.meta.isTouched ? getErrorMessage(state.meta.errors) : undefined"
+                  :error="
+                    state.meta.isTouched
+                      ? getErrorMessage(state.meta.errors)
+                      : undefined
+                  "
                   @update:model-value="field.handleChange"
                   @blur="field.handleBlur"
                 />
@@ -751,7 +1003,11 @@ watch(selectedCityCode, async (newCityCode) => {
                   hint="Upload a screenshot of your GCash transaction"
                   accept="image/*"
                   :model-value="field.state.value"
-                  :error="state.meta.isTouched ? getErrorMessage(state.meta.errors) : undefined"
+                  :error="
+                    state.meta.isTouched
+                      ? getErrorMessage(state.meta.errors)
+                      : undefined
+                  "
                   @update:model-value="field.handleChange"
                   @blur="field.handleBlur"
                 />
@@ -759,61 +1015,99 @@ watch(selectedCityCode, async (newCityCode) => {
             </div>
 
             <!-- Bank Transfer Payment Details -->
-            <div v-else-if="values.paymentMethod === 'bank'" key="bank" class="space-y-4 p-4">
-              <h3 class="flex items-center gap-2 text-lg font-semibold text mb-4">
+            <div
+              v-else-if="values.paymentMethod === 'bank'"
+              key="bank"
+              class="space-y-4 p-4"
+            >
+              <h3
+                class="flex items-center gap-2 text-lg font-semibold text mb-4"
+              >
                 <BuildingLibraryIcon class="w-5 h-5 text-primary mb-0.5" />
                 Bank Transfer Details
               </h3>
 
               <!-- Sender Name -->
-              <form.Field name="bankSenderName" :validators="{ onBlur: fieldSchemas.bankSenderName }" v-slot="{ field, state }">
+              <form.Field
+                name="bankSenderName"
+                :validators="{ onBlur: fieldSchemas.bankSenderName }"
+                v-slot="{ field, state }"
+              >
                 <FormInput
                   :id="field.name"
                   :name="field.name"
                   label="Name of Sender/Account Holder"
                   :model-value="field.state.value"
-                  :error="state.meta.isTouched ? getErrorMessage(state.meta.errors) : undefined"
+                  :error="
+                    state.meta.isTouched
+                      ? getErrorMessage(state.meta.errors)
+                      : undefined
+                  "
                   @update:model-value="field.handleChange"
                   @blur="field.handleBlur"
                 />
               </form.Field>
 
               <!-- Bank Name -->
-              <form.Field name="bankName" :validators="{ onBlur: fieldSchemas.bankName }" v-slot="{ field, state }">
+              <form.Field
+                name="bankName"
+                :validators="{ onBlur: fieldSchemas.bankName }"
+                v-slot="{ field, state }"
+              >
                 <FormInput
                   :id="field.name"
                   :name="field.name"
                   label="Bank Name"
                   hint="e.g., BDO, BPI, Metrobank"
                   :model-value="field.state.value"
-                  :error="state.meta.isTouched ? getErrorMessage(state.meta.errors) : undefined"
+                  :error="
+                    state.meta.isTouched
+                      ? getErrorMessage(state.meta.errors)
+                      : undefined
+                  "
                   @update:model-value="field.handleChange"
                   @blur="field.handleBlur"
                 />
               </form.Field>
 
               <!-- Account Number -->
-              <form.Field name="bankAccountNumber" :validators="{ onBlur: fieldSchemas.bankAccountNumber }" v-slot="{ field, state }">
+              <form.Field
+                name="bankAccountNumber"
+                :validators="{ onBlur: fieldSchemas.bankAccountNumber }"
+                v-slot="{ field, state }"
+              >
                 <FormInput
                   :id="field.name"
                   :name="field.name"
                   label="Account Number (Last 4 digits)"
                   maxlength="4"
                   :model-value="field.state.value"
-                  :error="state.meta.isTouched ? getErrorMessage(state.meta.errors) : undefined"
+                  :error="
+                    state.meta.isTouched
+                      ? getErrorMessage(state.meta.errors)
+                      : undefined
+                  "
                   @update:model-value="field.handleChange"
                   @blur="field.handleBlur"
                 />
               </form.Field>
 
               <!-- Reference Number -->
-              <form.Field name="bankReferenceNumber" :validators="{ onBlur: fieldSchemas.bankReferenceNumber }" v-slot="{ field, state }">
+              <form.Field
+                name="bankReferenceNumber"
+                :validators="{ onBlur: fieldSchemas.bankReferenceNumber }"
+                v-slot="{ field, state }"
+              >
                 <FormInput
                   :id="field.name"
                   :name="field.name"
                   label="Reference/Transaction Number"
                   :model-value="field.state.value"
-                  :error="state.meta.isTouched ? getErrorMessage(state.meta.errors) : undefined"
+                  :error="
+                    state.meta.isTouched
+                      ? getErrorMessage(state.meta.errors)
+                      : undefined
+                  "
                   @update:model-value="field.handleChange"
                   @blur="field.handleBlur"
                 />
@@ -828,7 +1122,11 @@ watch(selectedCityCode, async (newCityCode) => {
                   hint="Upload screenshot or deposit slip"
                   accept="image/*,.pdf"
                   :model-value="field.state.value"
-                  :error="state.meta.isTouched ? getErrorMessage(state.meta.errors) : undefined"
+                  :error="
+                    state.meta.isTouched
+                      ? getErrorMessage(state.meta.errors)
+                      : undefined
+                  "
                   @update:model-value="field.handleChange"
                   @blur="field.handleBlur"
                 />
@@ -836,34 +1134,56 @@ watch(selectedCityCode, async (newCityCode) => {
             </div>
 
             <!-- Cash Payment Details -->
-            <div v-else-if="values.paymentMethod === 'cash'" key="cash" class="space-y-4 p-4">
-              <h3 class="flex items-center gap-2 text-lg font-semibold text mb-4">
+            <div
+              v-else-if="values.paymentMethod === 'cash'"
+              key="cash"
+              class="space-y-4 p-4"
+            >
+              <h3
+                class="flex items-center gap-2 text-lg font-semibold text mb-4"
+              >
                 <BanknotesIcon class="w-5 h-5 text-primary mb-0.5" />
                 Cash Payment Details
               </h3>
 
               <!-- Date of Payment -->
-              <form.Field name="cashPaymentDate" :validators="{ onBlur: fieldSchemas.cashPaymentDate }" v-slot="{ field, state }">
+              <form.Field
+                name="cashPaymentDate"
+                :validators="{ onBlur: fieldSchemas.cashPaymentDate }"
+                v-slot="{ field, state }"
+              >
                 <FormInput
                   :id="field.name"
                   :name="field.name"
                   label="Date of Payment"
                   type="date"
                   :model-value="field.state.value"
-                  :error="state.meta.isTouched ? getErrorMessage(state.meta.errors) : undefined"
+                  :error="
+                    state.meta.isTouched
+                      ? getErrorMessage(state.meta.errors)
+                      : undefined
+                  "
                   @update:model-value="field.handleChange"
                   @blur="field.handleBlur"
                 />
               </form.Field>
 
               <!-- Staff Member -->
-              <form.Field name="cashReceivedBy" :validators="{ onBlur: fieldSchemas.cashReceivedBy }" v-slot="{ field, state }">
+              <form.Field
+                name="cashReceivedBy"
+                :validators="{ onBlur: fieldSchemas.cashReceivedBy }"
+                v-slot="{ field, state }"
+              >
                 <FormInput
                   :id="field.name"
                   :name="field.name"
                   label="Name of Staff Member Who Received Payment"
                   :model-value="field.state.value"
-                  :error="state.meta.isTouched ? getErrorMessage(state.meta.errors) : undefined"
+                  :error="
+                    state.meta.isTouched
+                      ? getErrorMessage(state.meta.errors)
+                      : undefined
+                  "
                   @update:model-value="field.handleChange"
                   @blur="field.handleBlur"
                 />
@@ -881,7 +1201,11 @@ watch(selectedCityCode, async (newCityCode) => {
             hint="Any information to help verify your payment"
             :required="false"
             :model-value="field.state.value"
-            :error="state.meta.isTouched ? getErrorMessage(state.meta.errors) : undefined"
+            :error="
+              state.meta.isTouched
+                ? getErrorMessage(state.meta.errors)
+                : undefined
+            "
             @update:model-value="field.handleChange"
             @blur="field.handleBlur"
           />
@@ -899,7 +1223,9 @@ watch(selectedCityCode, async (newCityCode) => {
       </div>
 
       <div class="space-y-4">
-        <div class="bg-background border-background rounded-lg p-4 max-h-60 overflow-y-auto">
+        <div
+          class="bg-background border-background rounded-lg p-4 max-h-60 overflow-y-auto"
+        >
           <h3 class="font-semibold text mb-2">Privacy Policy</h3>
           <p class="text-sm text-subtle mb-3">
             By submitting this form, you agree to the collection and processing
@@ -930,18 +1256,29 @@ watch(selectedCityCode, async (newCityCode) => {
         </div>
 
         <!-- Data Privacy Consent -->
-        <form.Field name="dataPrivacyConsent" :validators="{ onBlur: fieldSchemas.dataPrivacyConsent }" v-slot="{ field, state }">
+        <form.Field
+          name="dataPrivacyConsent"
+          :validators="{ onBlur: fieldSchemas.dataPrivacyConsent }"
+          v-slot="{ field, state }"
+        >
           <FormCheckbox
             :id="field.name"
             :name="field.name"
             :model-value="field.state.value"
-            :error="state.meta.isTouched ? getErrorMessage(state.meta.errors) : undefined"
+            :error="
+              state.meta.isTouched
+                ? getErrorMessage(state.meta.errors)
+                : undefined
+            "
             @update:model-value="field.handleChange"
             @blur="field.handleBlur"
           >
             I have read and agree to the
-            <a href="#" class="text-primary hover:underline">Data Privacy Policy</a>
-            and consent to the collection and processing of my personal information.
+            <a href="#" class="text-primary hover:underline"
+              >Data Privacy Policy</a
+            >
+            and consent to the collection and processing of my personal
+            information.
           </FormCheckbox>
         </form.Field>
       </div>
@@ -956,7 +1293,7 @@ watch(selectedCityCode, async (newCityCode) => {
           :disabled="isSubmitting"
           class="bg-primary text-white py-3 px-6 rounded-xl font-semibold hover:bg-primary/90 transition-colors disabled:bg-primary/50 disabled:cursor-not-allowed"
         >
-          {{ isSubmitting ? 'Submitting...' : 'Submit Registration' }}
+          {{ isSubmitting ? "Submitting..." : "Submit Registration" }}
         </button>
       </form.Subscribe>
     </div>

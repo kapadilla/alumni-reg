@@ -48,7 +48,7 @@ watch(showDetailsModal, (val) => {
   isLocked.value = val;
 });
 
-const { filterOptions, fetchFilterOptions } = useFilterOptions();
+const { filterOptions, fetchFilterOptions, fetchProvinces } = useFilterOptions();
 const { isOnline } = useNetworkStatus();
 
 // Filter state
@@ -59,6 +59,9 @@ const rejectedDateRange = ref<{ from: string | null; to: string | null }>({ from
 const rejectionStage = ref("");
 const degreeProgram = ref("");
 const yearGraduated = ref("");
+const campus = ref("");
+const province = ref("");
+const mentorship = ref<boolean | null>(null);
 
 // Sort options
 const sortOptions = [
@@ -75,6 +78,9 @@ const filterConfig = {
   showDateRange: true,
   showDegreeProgram: true,
   showYearGraduated: true,
+  showCampus: true,
+  showProvince: true,
+  showMentorship: true,
   showRejectionStage: true,
   showRejectedDateRange: true,
   sortOptions,
@@ -93,6 +99,9 @@ const refreshData = () => {
     rejection_stage: rejectionStage.value as "alumni_verification" | "payment_verification" | undefined || undefined,
     degree_program: degreeProgram.value || undefined,
     year_graduated: yearGraduated.value || undefined,
+    campus: campus.value || undefined,
+    province: province.value || undefined,
+    mentorship: mentorship.value ?? undefined,
     page: pagination.value.currentPage,
     limit: pagination.value.limit,
   });
@@ -116,6 +125,9 @@ const handlePageChange = (page: number) => {
     rejection_stage: rejectionStage.value as "alumni_verification" | "payment_verification" | undefined || undefined,
     degree_program: degreeProgram.value || undefined,
     year_graduated: yearGraduated.value || undefined,
+    campus: campus.value || undefined,
+    province: province.value || undefined,
+    mentorship: mentorship.value ?? undefined,
     page,
     limit: pagination.value.limit,
   });
@@ -133,6 +145,9 @@ const handleLimitChange = (limit: number) => {
     rejection_stage: rejectionStage.value as "alumni_verification" | "payment_verification" | undefined || undefined,
     degree_program: degreeProgram.value || undefined,
     year_graduated: yearGraduated.value || undefined,
+    campus: campus.value || undefined,
+    province: province.value || undefined,
+    mentorship: mentorship.value ?? undefined,
     page: 1,
     limit,
   });
@@ -147,6 +162,9 @@ const handleClearFilters = () => {
   rejectionStage.value = "";
   degreeProgram.value = "";
   yearGraduated.value = "";
+  campus.value = "";
+  province.value = "";
+  mentorship.value = null;
   fetchRejected({ ordering: "-rejected_at" });
 };
 
@@ -192,6 +210,7 @@ const getStageColor = (stage?: string) => {
 
 onMounted(() => {
   fetchFilterOptions();
+  fetchProvinces();
   fetchRejected({ ordering: ordering.value });
 });
 </script>
@@ -250,6 +269,9 @@ onMounted(() => {
         v-model:date-range="dateRange"
         v-model:degree-program="degreeProgram"
         v-model:year-graduated="yearGraduated"
+        v-model:campus="campus"
+        v-model:province="province"
+        v-model:mentorship="mentorship"
         v-model:rejection-stage="rejectionStage"
         v-model:rejected-date-range="rejectedDateRange"
         :filter-options="filterOptions"
@@ -430,6 +452,7 @@ onMounted(() => {
             </div>
 
             <AdminViewRejectedApplicantDetails 
+              :key="selectedApplicant?.id"
               class="flex-1 min-h-0"
               :applicant="selectedApplicant" 
               @close="showDetailsModal = false"

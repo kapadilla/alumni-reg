@@ -86,7 +86,7 @@ const loadActivity = async () => {
     });
     activities.value = result;
   } catch (error) {
-    console.error('Failed to load admin activity:', error);
+    console.error("Failed to load admin activity:", error);
     activityError.value = true;
     activities.value = null;
   } finally {
@@ -109,7 +109,7 @@ watch(
     if (props.modelValue) {
       loadActivity();
     }
-  }
+  },
 );
 
 // Load activity when modal opens
@@ -132,7 +132,7 @@ watch(
       await nextTick();
       loadActivity();
     }
-  }
+  },
 );
 
 const handleSort = (field: string, direction: "asc" | "desc") => {
@@ -153,18 +153,27 @@ const close = () => {
 // Helper function to get action chip styling
 const getActionChipClass = (action: string) => {
   const actionMap: Record<string, string> = {
-    login: "bg-blue-500/15 text-blue-600 dark:text-blue-400 ring-1 ring-blue-500/20",
-    logout: "bg-gray-500/15 text-gray-600 dark:text-gray-400 ring-1 ring-gray-500/20",
+    login:
+      "bg-blue-500/15 text-blue-600 dark:text-blue-400 ring-1 ring-blue-500/20",
+    logout:
+      "bg-gray-500/15 text-gray-600 dark:text-gray-400 ring-1 ring-gray-500/20",
     verify_alumni: "bg-secondary/15 text-secondary ring-1 ring-secondary/20",
-    reject_alumni: "bg-red-500/15 text-red-600 dark:text-red-400 ring-1 ring-red-500/20",
+    reject_alumni:
+      "bg-red-500/15 text-red-600 dark:text-red-400 ring-1 ring-red-500/20",
     approve_member: "bg-secondary/15 text-secondary ring-1 ring-secondary/20",
-    reject_payment: "bg-red-500/15 text-red-600 dark:text-red-400 ring-1 ring-red-500/20",
-    revoke_member: "bg-orange-500/15 text-orange-600 dark:text-orange-400 ring-1 ring-orange-500/20",
-    reinstate_member: "bg-purple-500/15 text-purple-600 dark:text-purple-400 ring-1 ring-purple-500/20",
-    deactivate_admin: "bg-red-500/15 text-red-600 dark:text-red-400 ring-1 ring-red-500/20",
+    reject_payment:
+      "bg-red-500/15 text-red-600 dark:text-red-400 ring-1 ring-red-500/20",
+    revoke_member:
+      "bg-orange-500/15 text-orange-600 dark:text-orange-400 ring-1 ring-orange-500/20",
+    reinstate_member:
+      "bg-purple-500/15 text-purple-600 dark:text-purple-400 ring-1 ring-purple-500/20",
+    deactivate_admin:
+      "bg-red-500/15 text-red-600 dark:text-red-400 ring-1 ring-red-500/20",
     reactivate_admin: "bg-secondary/15 text-secondary ring-1 ring-secondary/20",
   };
-  return actionMap[action] || "bg-primary/15 text-primary ring-1 ring-primary/20";
+  return (
+    actionMap[action] || "bg-primary/15 text-primary ring-1 ring-primary/20"
+  );
 };
 
 // Helper function to get action icon
@@ -193,7 +202,6 @@ const formatTargetType = (targetType: string) => {
   };
   return typeMap[targetType] || targetType;
 };
-
 </script>
 
 <template>
@@ -219,13 +227,21 @@ const formatTargetType = (targetType: string) => {
       <!-- Info Grid with Enhanced Card Design -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <!-- Full Name Card -->
-        <div class="bg-gradient-to-br from-background to-background/50 rounded-xl p-5 border border-border/50 hover:border-border transition-all duration-200 hover:shadow-md group">
+        <div
+          class="bg-linear-to-br from-background to-background/50 rounded-xl p-5 border border-border/50 hover:border-border transition-all duration-200 hover:shadow-md group"
+        >
           <div class="flex items-start gap-3">
-            <div class="p-2.5 rounded-lg bg-primary/10 text-primary group-hover:bg-primary/15 transition-colors">
+            <div
+              class="p-2.5 rounded-lg bg-primary/10 text-primary group-hover:bg-primary/15 transition-colors"
+            >
               <Icon name="material-symbols:person-rounded" class="size-5" />
             </div>
             <div class="flex-1 min-w-0">
-              <dt class="text-xs font-semibold text-subtle uppercase tracking-wide mb-1.5">Full Name</dt>
+              <dt
+                class="text-xs font-semibold text-subtle uppercase tracking-wide mb-1.5"
+              >
+                Full Name
+              </dt>
               <dd class="text-base text-text font-semibold truncate">
                 <span v-if="admin.firstName || admin.lastName">
                   {{ `${admin.firstName} ${admin.lastName}` }}
@@ -239,32 +255,56 @@ const formatTargetType = (targetType: string) => {
         </div>
 
         <!-- Email Card -->
-        <div class="bg-gradient-to-br from-background to-background/50 rounded-xl p-5 border border-border/50 hover:border-border transition-all duration-200 hover:shadow-md group">
+        <div
+          class="bg-linear-to-br from-background to-background/50 rounded-xl p-5 border border-border/50 hover:border-border transition-all duration-200 hover:shadow-md group"
+        >
           <div class="flex items-start gap-3">
-            <div class="p-2.5 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 group-hover:bg-blue-500/15 transition-colors">
+            <div
+              class="p-2.5 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 group-hover:bg-blue-500/15 transition-colors"
+            >
               <Icon name="material-symbols:mail-rounded" class="size-5" />
             </div>
             <div class="flex-1 min-w-0">
-              <dt class="text-xs font-semibold text-subtle uppercase tracking-wide mb-1.5">Email</dt>
-              <dd class="text-base text-text font-medium truncate">{{ admin.email }}</dd>
+              <dt
+                class="text-xs font-semibold text-subtle uppercase tracking-wide mb-1.5"
+              >
+                Email
+              </dt>
+              <dd class="text-base text-text font-medium truncate">
+                {{ admin.email }}
+              </dd>
             </div>
           </div>
         </div>
 
         <!-- Status Card -->
-        <div class="bg-gradient-to-br from-background to-background/50 rounded-xl p-5 border border-border/50 hover:border-border transition-all duration-200 hover:shadow-md group">
+        <div
+          class="bg-linear-to-br from-background to-background/50 rounded-xl p-5 border border-border/50 hover:border-border transition-all duration-200 hover:shadow-md group"
+        >
           <div class="flex items-start gap-3">
-            <div 
+            <div
               class="p-2.5 rounded-lg transition-colors"
-              :class="admin.isActive ? 'bg-secondary/10 text-secondary group-hover:bg-secondary/15' : 'bg-red-500/10 text-red-600 dark:text-red-400 group-hover:bg-red-500/15'"
+              :class="
+                admin.isActive
+                  ? 'bg-secondary/10 text-secondary group-hover:bg-secondary/15'
+                  : 'bg-red-500/10 text-red-600 dark:text-red-400 group-hover:bg-red-500/15'
+              "
             >
-              <Icon 
-                :name="admin.isActive ? 'material-symbols:check-circle-rounded' : 'material-symbols:cancel-rounded'" 
-                class="size-5" 
+              <Icon
+                :name="
+                  admin.isActive
+                    ? 'material-symbols:check-circle-rounded'
+                    : 'material-symbols:cancel-rounded'
+                "
+                class="size-5"
               />
             </div>
             <div class="flex-1">
-              <dt class="text-xs font-semibold text-subtle uppercase tracking-wide mb-1.5">Status</dt>
+              <dt
+                class="text-xs font-semibold text-subtle uppercase tracking-wide mb-1.5"
+              >
+                Status
+              </dt>
               <dd>
                 <span
                   class="inline-flex items-center gap-1.5 px-3 py-1 text-sm font-semibold rounded-full"
@@ -274,7 +314,7 @@ const formatTargetType = (targetType: string) => {
                       : 'bg-red-500/15 text-red-600 dark:text-red-400 ring-1 ring-red-500/20'
                   "
                 >
-                  <span 
+                  <span
                     class="size-1.5 rounded-full animate-pulse"
                     :class="admin.isActive ? 'bg-secondary' : 'bg-red-500'"
                   />
@@ -286,26 +326,47 @@ const formatTargetType = (targetType: string) => {
         </div>
 
         <!-- Date Joined Card -->
-        <div class="bg-gradient-to-br from-background to-background/50 rounded-xl p-5 border border-border/50 hover:border-border transition-all duration-200 hover:shadow-md group">
+        <div
+          class="bg-linear-to-br from-background to-background/50 rounded-xl p-5 border border-border/50 hover:border-border transition-all duration-200 hover:shadow-md group"
+        >
           <div class="flex items-start gap-3">
-            <div class="p-2.5 rounded-lg bg-purple-500/10 text-purple-600 dark:text-purple-400 group-hover:bg-purple-500/15 transition-colors">
-              <Icon name="material-symbols:calendar-today-rounded" class="size-5" />
+            <div
+              class="p-2.5 rounded-lg bg-purple-500/10 text-purple-600 dark:text-purple-400 group-hover:bg-purple-500/15 transition-colors"
+            >
+              <Icon
+                name="material-symbols:calendar-today-rounded"
+                class="size-5"
+              />
             </div>
             <div class="flex-1">
-              <dt class="text-xs font-semibold text-subtle uppercase tracking-wide mb-1.5">Date Joined</dt>
-              <dd class="text-base text-text font-medium">{{ formatDate(admin.dateJoined) }}</dd>
+              <dt
+                class="text-xs font-semibold text-subtle uppercase tracking-wide mb-1.5"
+              >
+                Date Joined
+              </dt>
+              <dd class="text-base text-text font-medium">
+                {{ formatDate(admin.dateJoined) }}
+              </dd>
             </div>
           </div>
         </div>
 
         <!-- Last Login Card -->
-        <div class="md:col-span-2 bg-gradient-to-br from-background to-background/50 rounded-xl p-5 border border-border/50 hover:border-border transition-all duration-200 hover:shadow-md group">
+        <div
+          class="md:col-span-2 bg-linear-to-br from-background to-background/50 rounded-xl p-5 border border-border/50 hover:border-border transition-all duration-200 hover:shadow-md group"
+        >
           <div class="flex items-start gap-3">
-            <div class="p-2.5 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 group-hover:bg-amber-500/15 transition-colors">
+            <div
+              class="p-2.5 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 group-hover:bg-amber-500/15 transition-colors"
+            >
               <Icon name="material-symbols:login-rounded" class="size-5" />
             </div>
             <div class="flex-1">
-              <dt class="text-xs font-semibold text-subtle uppercase tracking-wide mb-1.5">Last Login</dt>
+              <dt
+                class="text-xs font-semibold text-subtle uppercase tracking-wide mb-1.5"
+              >
+                Last Login
+              </dt>
               <dd class="text-base text-text font-medium">
                 {{
                   admin.lastLogin || admin.last_login
@@ -324,23 +385,34 @@ const formatTargetType = (targetType: string) => {
       <h4 class="text-xl font-bold text-text mb-5">Activity Log</h4>
 
       <!-- Filters with Enhanced Design -->
-      <div class="mb-5 p-5 bg-gradient-to-br from-background to-background/50 rounded-xl border border-border/50 shadow-sm">
+      <div
+        class="mb-5 p-5 bg-linear-to-br from-background to-background/50 rounded-xl border border-border/50 shadow-sm"
+      >
         <div class="flex items-center gap-2 mb-4">
           <div class="p-1.5 rounded-lg bg-primary/10">
-            <Icon name="material-symbols:filter-list-rounded" class="size-4 text-primary" />
+            <Icon
+              name="material-symbols:filter-list-rounded"
+              class="size-4 text-primary"
+            />
           </div>
           <h5 class="text-sm font-semibold text-text">Filters</h5>
         </div>
-        
+
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <!-- Date Range -->
           <div class="lg:col-span-2">
-            <DateRangePicker v-model="dateRange" label-from="From" label-to="To" />
+            <DateRangePicker
+              v-model="dateRange"
+              label-from="From"
+              label-to="To"
+            />
           </div>
 
           <!-- Action Filter -->
           <div class="flex flex-col gap-2">
-            <label class="text-xs font-bold text-subtle uppercase tracking-wider flex items-center gap-1.5">
+            <label
+              class="text-xs font-bold text-subtle uppercase tracking-wider flex items-center gap-1.5"
+            >
               <Icon name="material-symbols:bolt-rounded" class="size-3.5" />
               Action Type
             </label>
@@ -349,7 +421,11 @@ const formatTargetType = (targetType: string) => {
               class="px-3.5 py-2.5 text-sm bg-surface border-2 border-border rounded-xl text-text focus:outline-none focus:border-primary hover:border-subtle transition-all duration-200 font-medium shadow-sm hover:shadow cursor-pointer"
               @change="filters.page = 1"
             >
-              <option v-for="opt in actionOptions" :key="opt.value" :value="opt.value">
+              <option
+                v-for="opt in actionOptions"
+                :key="opt.value"
+                :value="opt.value"
+              >
                 {{ opt.label }}
               </option>
             </select>
@@ -357,7 +433,9 @@ const formatTargetType = (targetType: string) => {
 
           <!-- Target Type Filter -->
           <div class="flex flex-col gap-2">
-            <label class="text-xs font-bold text-subtle uppercase tracking-wider flex items-center gap-1.5">
+            <label
+              class="text-xs font-bold text-subtle uppercase tracking-wider flex items-center gap-1.5"
+            >
               <Icon name="material-symbols:target" class="size-3.5" />
               Target Type
             </label>
@@ -366,7 +444,11 @@ const formatTargetType = (targetType: string) => {
               class="px-3.5 py-2.5 text-sm bg-surface border-2 border-border rounded-xl text-text focus:outline-none focus:border-primary hover:border-subtle transition-all duration-200 font-medium shadow-sm hover:shadow cursor-pointer"
               @change="filters.page = 1"
             >
-              <option v-for="opt in targetTypeOptions" :key="opt.value" :value="opt.value">
+              <option
+                v-for="opt in targetTypeOptions"
+                :key="opt.value"
+                :value="opt.value"
+              >
                 {{ opt.label }}
               </option>
             </select>
@@ -375,19 +457,37 @@ const formatTargetType = (targetType: string) => {
       </div>
 
       <!-- Activity Table -->
-      <div class="border-2 border-border/50 rounded-xl overflow-hidden shadow-sm">
+      <div
+        class="border-2 border-border/50 rounded-xl overflow-hidden shadow-sm"
+      >
         <!-- Loading State -->
-        <div v-if="loadingActivity" class="p-12 text-center bg-gradient-to-br from-background to-background/50">
-          <Icon name="svg-spinners:ring-resize" class="size-8 text-primary mx-auto mb-4" />
+        <div
+          v-if="loadingActivity"
+          class="p-12 text-center bg-linear-to-br from-background to-background/50"
+        >
+          <Icon
+            name="svg-spinners:ring-resize"
+            class="size-8 text-primary mx-auto mb-4"
+          />
           <p class="text-subtle text-sm font-medium">Loading activities...</p>
         </div>
 
         <!-- Error State -->
-        <div v-else-if="activityError" class="p-12 text-center bg-gradient-to-br from-background to-background/50">
-          <div class="size-16 rounded-full bg-red-500/10 flex items-center justify-center mx-auto mb-4">
-            <Icon name="material-symbols:error-outline-rounded" class="size-8 text-red-500" />
+        <div
+          v-else-if="activityError"
+          class="p-12 text-center bg-linear-to-br from-background to-background/50"
+        >
+          <div
+            class="size-16 rounded-full bg-red-500/10 flex items-center justify-center mx-auto mb-4"
+          >
+            <Icon
+              name="material-symbols:error-outline-rounded"
+              class="size-8 text-red-500"
+            />
           </div>
-          <p class="text-text font-semibold mb-2">Unable to load activity logs</p>
+          <p class="text-text font-semibold mb-2">
+            Unable to load activity logs
+          </p>
           <p class="text-subtle text-sm mb-5">
             The activity tracking feature is not available yet
           </p>
@@ -402,27 +502,33 @@ const formatTargetType = (targetType: string) => {
         <!-- Empty State -->
         <div
           v-else-if="!activities || activities.activities.length === 0"
-          class="p-12 text-center bg-gradient-to-br from-background to-background/50"
+          class="p-12 text-center bg-linear-to-br from-background to-background/50"
         >
-          <div class="size-16 rounded-full bg-subtle/10 flex items-center justify-center mx-auto mb-4">
-            <Icon name="material-symbols:history" class="size-8 text-subtle/50" />
+          <div
+            class="size-16 rounded-full bg-subtle/10 flex items-center justify-center mx-auto mb-4"
+          >
+            <Icon
+              name="material-symbols:history"
+              class="size-8 text-subtle/50"
+            />
           </div>
           <p class="text-text font-semibold mb-2">No activities found</p>
           <p class="text-subtle text-sm">
             {{
-              filters.dateFrom || filters.dateTo || filters.action || filters.targetType
+              filters.dateFrom ||
+              filters.dateTo ||
+              filters.action ||
+              filters.targetType
                 ? "Try adjusting your filters"
                 : "No activity recorded for this admin"
             }}
           </p>
         </div>
 
-
-
         <!-- Table with horizontal scroll -->
         <AdminScrollContainer v-else>
           <table class="w-full min-w-[800px]">
-            <thead class="bg-gradient-to-r from-background to-background/50">
+            <thead class="bg-linear-to-r from-background to-background/50">
               <tr>
                 <SortableHeader
                   label="Action"
@@ -457,14 +563,17 @@ const formatTargetType = (targetType: string) => {
               <tr
                 v-for="activity in activities.activities"
                 :key="activity.id"
-                class="hover:bg-gradient-to-r hover:from-background hover:to-background/50 transition-all duration-200"
+                class="hover:bg-linear-to-r hover:from-background hover:to-background/50 transition-all duration-200"
               >
                 <td class="px-4 md:px-6 py-4 whitespace-nowrap">
                   <span
                     class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-full shadow-sm"
                     :class="getActionChipClass(activity.action)"
                   >
-                    <Icon :name="getActionIcon(activity.action)" class="size-3.5" />
+                    <Icon
+                      :name="getActionIcon(activity.action)"
+                      class="size-3.5"
+                    />
                     {{ activity.actionDisplay }}
                   </span>
                 </td>
@@ -473,20 +582,29 @@ const formatTargetType = (targetType: string) => {
                     <span class="text-text font-semibold">
                       {{ activity.targetName || "-" }}
                     </span>
-                    <span v-if="activity.targetType" class="text-subtle text-xs font-medium mt-0.5">
+                    <span
+                      v-if="activity.targetType"
+                      class="text-subtle text-xs font-medium mt-0.5"
+                    >
                       {{ formatTargetType(activity.targetType) }}
                     </span>
                   </div>
                 </td>
-                <td class="px-4 md:px-6 py-4 whitespace-nowrap text-sm text-text font-medium">
+                <td
+                  class="px-4 md:px-6 py-4 whitespace-nowrap text-sm text-text font-medium"
+                >
                   {{ formatDate(activity.timestamp) }}
                 </td>
                 <td class="px-4 md:px-6 py-4 whitespace-nowrap text-sm">
-                  <code class="px-2 py-1 text-xs font-mono bg-background rounded border border-border/50 text-subtle">
+                  <code
+                    class="px-2 py-1 text-xs font-mono bg-background rounded border border-border/50 text-subtle"
+                  >
                     {{ activity.ipAddress || "-" }}
                   </code>
                 </td>
-                <td class="px-4 md:px-6 py-4 text-sm text-subtle font-medium max-w-xs truncate">
+                <td
+                  class="px-4 md:px-6 py-4 text-sm text-subtle font-medium max-w-xs truncate"
+                >
                   {{ activity.notes || "-" }}
                 </td>
               </tr>

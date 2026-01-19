@@ -44,7 +44,9 @@ const handleLimitChange = (event: Event) => {
     class="flex flex-col items-center justify-between gap-3 sm:gap-4 px-4 md:px-6 py-3 sm:py-4 border-t border-border bg-surface"
   >
     <!-- Items info - Full width on mobile, centered -->
-    <div class="text-sm text-subtle text-center sm:text-left w-full sm:w-auto order-1">
+    <div
+      class="text-sm text-subtle text-center sm:text-left w-full sm:w-auto order-1"
+    >
       <span v-if="totalItems > 0">
         Showing <span class="font-medium text-text">{{ startItem }}</span> to
         <span class="font-medium text-text">{{ endItem }}</span> of
@@ -54,10 +56,14 @@ const handleLimitChange = (event: Event) => {
     </div>
 
     <!-- Controls container - Full width on mobile -->
-    <div class="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 w-full sm:w-auto order-2">
+    <div
+      class="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 w-full sm:w-auto order-2"
+    >
       <!-- Items per page - Centered on mobile -->
       <div class="flex items-center gap-2 text-sm">
-        <label for="limit-select" class="text-subtle whitespace-nowrap">Per page:</label>
+        <label for="limit-select" class="text-subtle whitespace-nowrap"
+          >Per page:</label
+        >
         <select
           id="limit-select"
           :value="limit"
@@ -89,7 +95,9 @@ const handleLimitChange = (event: Event) => {
           <Icon name="material-symbols:chevron-left" class="size-5 sm:size-4" />
         </button>
 
-        <span class="px-4 sm:px-3 py-1 text-sm font-medium text-text min-w-[80px] sm:min-w-0 text-center">
+        <span
+          class="px-4 sm:px-3 py-1 text-sm font-medium text-text min-w-20 sm:min-w-0 text-center"
+        >
           {{ currentPage }} / {{ totalPages || 1 }}
         </span>
 
@@ -99,7 +107,10 @@ const handleLimitChange = (event: Event) => {
           title="Next page"
           @click="goToPage(currentPage + 1)"
         >
-          <Icon name="material-symbols:chevron-right" class="size-5 sm:size-4" />
+          <Icon
+            name="material-symbols:chevron-right"
+            class="size-5 sm:size-4"
+          />
         </button>
         <button
           :disabled="!canGoNext"

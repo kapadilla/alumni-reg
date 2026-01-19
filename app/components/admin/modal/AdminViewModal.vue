@@ -33,7 +33,7 @@ watch(
     } else {
       document.body.style.overflow = "";
     }
-  }
+  },
 );
 
 const onKeydown = (e: KeyboardEvent) => {
@@ -60,13 +60,13 @@ const close = () => {
     >
       <div
         v-if="modelValue"
-        class="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6"
+        class="fixed inset-0 z-9999 flex items-center justify-center p-4 sm:p-6"
       >
         <!-- Backdrop -->
         <div
           class="fixed inset-0 bg-black/60 backdrop-blur-sm"
           @click="close"
-        ></div>
+        />
 
         <!-- Modal Panel -->
         <div
@@ -87,10 +87,12 @@ const close = () => {
           <div
             class="px-6 py-4 border-b border-border flex items-center justify-between shrink-0 bg-surface"
           >
-            <h3 class="text-lg font-semibold text-text">{{ title }}</h3>
+            <h3 class="text-lg font-semibold text-text">
+              {{ title }}
+            </h3>
             <button
-              @click="close"
               class="p-2 -mr-2 text-subtle hover:text-text hover:bg-background rounded-lg transition-colors"
+              @click="close"
             >
               <Icon name="material-symbols:close" class="size-5" />
             </button>

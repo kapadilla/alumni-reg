@@ -15,23 +15,23 @@ const props = withDefaults(
   }>(),
   {
     required: true,
-    placeholder: 'Select an option',
-  }
+    placeholder: "Select an option",
+  },
 );
 
 defineEmits<{
-  'update:modelValue': [value: string];
+  "update:modelValue": [value: string];
   blur: [];
 }>();
 
 // Extract error message from various error formats
 const errorMessage = computed(() => {
   if (!props.error) return undefined;
-  if (typeof props.error === 'string') return props.error;
+  if (typeof props.error === "string") return props.error;
   if (
-    typeof props.error === 'object' &&
+    typeof props.error === "object" &&
     props.error !== null &&
-    'message' in props.error
+    "message" in props.error
   ) {
     return (props.error as { message: string }).message;
   }
@@ -63,8 +63,8 @@ const errorMessage = computed(() => {
       "
       @blur="$emit('blur')"
     >
-      <option value="" disabled selected class="text-subtle">
-        {{ loading ? 'Loading...' : placeholder }}
+      <option v-if="!modelValue" value="" disabled selected class="text-subtle">
+        {{ loading ? "Loading..." : placeholder }}
       </option>
       <option
         v-for="option in options"
