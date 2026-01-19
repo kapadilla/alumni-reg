@@ -21,7 +21,10 @@ export interface LocationOption extends SelectOption {
 export const mentorshipAreas: SelectOption[] = [
   { value: "Career Advancement", label: "Career Advancement" },
   { value: "Leadership & Management", label: "Leadership & Management" },
-  { value: "Business & Corporate Skills", label: "Business & Corporate Skills" },
+  {
+    value: "Business & Corporate Skills",
+    label: "Business & Corporate Skills",
+  },
   { value: "Finance & Operations", label: "Finance & Operations" },
   { value: "Technology & Innovation", label: "Technology & Innovation" },
   { value: "HR & Workplace Skills", label: "HR & Workplace Skills" },
@@ -343,10 +346,10 @@ export const fieldSchemas = {
   suffix: z.string().optional(),
   maidenName: z.string().optional(),
   dateOfBirth: z.string().min(1, "Date of birth is required"),
-  email: z.email("Please enter a valid email address")
+  email: z
+    .email("Please enter a valid email address")
     .refine((email) => !email.toLowerCase().endsWith("@up.edu.ph"), {
-      error:
-        "UP email addresses are not allowed. Please use a personal email.",
+      error: "UP email addresses are not allowed. Please use a personal email.",
     }),
   mobileNumber: z
     .string()
@@ -373,10 +376,18 @@ export const fieldSchemas = {
   industry: z.string().optional(),
   yearsOfExperience: z.string().optional(),
   // Mentorship fields
-  mentorshipAreas: z.array(z.string()).min(1, "Please select at least one area of interest"),
-  mentorshipAreasOther: z.string().min(1, "Please specify your other area of interest"),
-  mentorshipIndustryTracks: z.array(z.string()).min(1, "Please select at least one industry track"),
-  mentorshipIndustryTracksOther: z.string().min(1, "Please specify your other industry track"),
+  mentorshipAreas: z
+    .array(z.string())
+    .min(1, "Please select at least one area of interest"),
+  mentorshipAreasOther: z
+    .string()
+    .min(1, "Please specify your other area of interest"),
+  mentorshipIndustryTracks: z
+    .array(z.string())
+    .min(1, "Please select at least one industry track"),
+  mentorshipIndustryTracksOther: z
+    .string()
+    .min(1, "Please specify your other industry track"),
   mentorshipFormat: z.string().min(1, "Please select a mentorship format"),
   mentorshipAvailability: z.string().min(1, "Please enter your availability"),
   // Payment fields
