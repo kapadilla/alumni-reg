@@ -11,21 +11,32 @@ const props = withDefaults(
     hint?: string;
     rows?: number;
     maxlength?: string | number;
+    showCharCount?: boolean;
   }>(),
   {
     required: true,
     rows: 3,
-  }
+    showCharCount: false,
+  },
 );
+
+// Character count
+const charCount = computed(() => props.modelValue?.length || 0);
+const maxChars = computed(() => {
+  if (!props.maxlength) return null;
+  return typeof props.maxlength === "string"
+    ? parseInt(props.maxlength, 10)
+    : props.maxlength;
+});
 
 // Extract error message from various error formats
 const errorMessage = computed(() => {
   if (!props.error) return undefined;
-  if (typeof props.error === 'string') return props.error;
+  if (typeof props.error === "string") return props.error;
   if (
-    typeof props.error === 'object' &&
+    typeof props.error === "object" &&
     props.error !== null &&
-    'message' in props.error
+    "message" in props.error
   ) {
     return (props.error as { message: string }).message;
   }
@@ -33,7 +44,7 @@ const errorMessage = computed(() => {
 });
 
 defineEmits<{
-  'update:modelValue': [value: string];
+  "update:modelValue": [value: string];
   blur: [];
 }>();
 </script>
@@ -64,6 +75,15 @@ defineEmits<{
       "
       @blur="$emit('blur')"
     />
+    <!-- Character count -->
+    <div v-if="showCharCount && maxChars" class="flex justify-end">
+      <span
+        class="text-xs transition-colors"
+        :class="charCount > maxChars ? 'text-red-500' : 'text-subtle'"
+      >
+        {{ charCount }} / {{ maxChars }}
+      </span>
+    </div>
     <p v-if="errorMessage" class="text-sm text-red-500">
       {{ errorMessage }}
     </p>

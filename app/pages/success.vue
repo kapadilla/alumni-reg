@@ -2,6 +2,17 @@
 useHead({
   title: "Registration Successful - UP Alumni Association - Cebu Chapter",
 });
+
+// Fetch public form settings for success message
+const { fetchPublicFormSettings, getSuccessMessage } = usePublicFormSettings();
+
+// Fetch settings on mount
+onMounted(async () => {
+  await fetchPublicFormSettings();
+});
+
+// Get the custom success message
+const customMessage = computed(() => getSuccessMessage());
 </script>
 
 <template>
@@ -29,6 +40,16 @@ useHead({
           <p class="text-subtle">
             Thank you for submitting your registration. We'll review your
             application and get back to you soon.
+          </p>
+        </div>
+
+        <!-- Custom Message from Admin -->
+        <div
+          v-if="customMessage"
+          class="bg-primary/5 border border-primary/20 rounded-lg p-4"
+        >
+          <p class="text-sm text-text whitespace-pre-wrap">
+            {{ customMessage }}
           </p>
         </div>
 

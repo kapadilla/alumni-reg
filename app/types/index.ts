@@ -318,3 +318,64 @@ export interface ConfirmPaymentResponse {
   memberSince: string;
   approvedAt: string;
 }
+
+// Form Settings Types
+export interface GcashAccount {
+  name: string;
+  number: string;
+}
+
+export interface BankAccount {
+  accountName: string;
+  accountNumber: string;
+  bankName: string;
+}
+
+export interface CashPaymentDetails {
+  address: string;
+  building: string;
+  office: string;
+  openDays: string[];
+  openHours: string;
+}
+
+export interface PaymentSettings {
+  gcashAccounts: GcashAccount[];
+  bankAccounts: BankAccount[];
+  cashPayment: CashPaymentDetails;
+}
+
+export interface FormSettings {
+  membershipFee: number;
+  paymentSettings: PaymentSettings;
+  successMessage: string;
+}
+
+export interface FormSettingsLastUpdated {
+  at: string;
+  by: {
+    id: number;
+    name: string;
+    email: string;
+  };
+}
+
+export interface FormSettingsResponse {
+  settings: FormSettings;
+  lastUpdated?: FormSettingsLastUpdated;
+}
+
+// Public form settings response (different structure)
+export interface PublicFormSettingsResponse {
+  membershipFee: number;
+  paymentMethods: {
+    gcash: {
+      accounts: GcashAccount[];
+    };
+    bank: {
+      accounts: BankAccount[];
+    };
+    cash: CashPaymentDetails;
+  };
+  successMessage: string;
+}

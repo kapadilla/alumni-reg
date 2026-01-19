@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
-import { CheckIcon } from '@heroicons/vue/20/solid';
+import { ref, computed, watch } from "vue";
+import { CheckIcon, PlusIcon } from "@heroicons/vue/20/solid";
 
 const props = withDefaults(
   defineProps<{
@@ -20,24 +20,24 @@ const props = withDefaults(
     required: true,
     modelValue: () => [],
     hasOther: false,
-    otherValue: '',
-  }
+    otherValue: "",
+  },
 );
 
 const emit = defineEmits<{
-  'update:modelValue': [value: string[]];
-  'update:otherValue': [value: string];
+  "update:modelValue": [value: string[]];
+  "update:otherValue": [value: string];
   blur: [];
 }>();
 
 // Extract error message from various error formats
 const errorMessage = computed(() => {
   if (!props.error) return undefined;
-  if (typeof props.error === 'string') return props.error;
+  if (typeof props.error === "string") return props.error;
   if (
-    typeof props.error === 'object' &&
+    typeof props.error === "object" &&
     props.error !== null &&
-    'message' in props.error
+    "message" in props.error
   ) {
     return (props.error as { message: string }).message;
   }
@@ -45,55 +45,71 @@ const errorMessage = computed(() => {
 });
 
 // Track if "other" is selected
-const isOtherSelected = computed(() => props.modelValue?.includes('other') ?? false);
+const isOtherSelected = computed(
+  () => props.modelValue?.includes("other") ?? false,
+);
 
 // Local state for the other input
-const localOtherValue = ref(props.otherValue || '');
+const localOtherValue = ref(props.otherValue || "");
 
 // Sync with prop
-watch(() => props.otherValue, (newVal) => {
-  localOtherValue.value = newVal || '';
-});
+watch(
+  () => props.otherValue,
+  (newVal) => {
+    localOtherValue.value = newVal || "";
+  },
+);
 
 // Toggle chip selection
 const toggleChip = (value: string) => {
   if (props.disabled) return;
-  
+
   const current = props.modelValue || [];
   const newValue = current.includes(value)
     ? current.filter((v) => v !== value)
     : [...current, value];
-  
-  emit('update:modelValue', newValue);
+
+  emit("update:modelValue", newValue);
 };
 
 // Check if chip is selected
-const isSelected = (value: string) => props.modelValue?.includes(value) ?? false;
+const isSelected = (value: string) =>
+  props.modelValue?.includes(value) ?? false;
 
 // Handle other input change
 const handleOtherInput = (event: Event) => {
   const value = (event.target as HTMLInputElement).value;
   localOtherValue.value = value;
-  emit('update:otherValue', value);
+  emit("update:otherValue", value);
 };
 
 // Handle blur on other input
 const handleOtherBlur = () => {
-  emit('update:otherValue', localOtherValue.value);
-  emit('blur');
+  emit("update:otherValue", localOtherValue.value);
+  emit("blur");
 };
 </script>
 
 <template>
   <div class="flex flex-col gap-2">
-    <label v-if="label" :id="`${id}-label`" class="text-base font-medium text-text">
+    <label
+      v-if="label"
+      :id="`${id}-label`"
+      class="text-base font-medium text-text"
+    >
       {{ label }}
-      <span v-if="!required" class="text-subtle text-sm font-normal ml-1">(Optional)</span>
+      <span v-if="!required" class="text-subtle text-sm font-normal ml-1"
+        >(Optional)</span
+      >
     </label>
     <p v-if="hint" class="text-sm text-subtle">{{ hint }}</p>
-    
+
     <!-- Chips Container -->
-    <div class="flex flex-wrap gap-2" role="group" :aria-labelledby="`${id}-label`">
+    <div
+      class="flex flex-wrap gap-2"
+      role="group"
+      :aria-labelledby="`${id}-label`"
+    >
       <button
         v-for="option in options"
         :key="option.value"
@@ -108,13 +124,27 @@ const handleOtherBlur = () => {
         ]"
         @click="toggleChip(option.value)"
       >
-        <CheckIcon 
-          class="w-4 h-4 transition-all duration-150"
-          :class="isSelected(option.value) ? 'opacity-100 scale-100' : 'opacity-0 scale-75 w-0'"
-        />
+        <span class="relative w-4 h-4 shrink-0">
+          <CheckIcon
+            class="absolute inset-0 w-4 h-4 transition-all duration-200 ease-out"
+            :class="
+              isSelected(option.value)
+                ? 'opacity-100 scale-100 rotate-0'
+                : 'opacity-0 scale-50 -rotate-90'
+            "
+          />
+          <PlusIcon
+            class="absolute inset-0 w-4 h-4 transition-all duration-200 ease-out"
+            :class="
+              isSelected(option.value)
+                ? 'opacity-0 scale-50 rotate-90'
+                : 'opacity-100 scale-100 rotate-0'
+            "
+          />
+        </span>
         {{ option.label }}
       </button>
-      
+
       <!-- Other Chip -->
       <button
         v-if="hasOther"
@@ -129,14 +159,28 @@ const handleOtherBlur = () => {
         ]"
         @click="toggleChip('other')"
       >
-        <CheckIcon 
-          class="w-4 h-4 transition-all duration-150"
-          :class="isOtherSelected ? 'opacity-100 scale-100' : 'opacity-0 scale-75 w-0'"
-        />
+        <span class="relative w-4 h-4 shrink-0">
+          <CheckIcon
+            class="absolute inset-0 w-4 h-4 transition-all duration-200 ease-out"
+            :class="
+              isOtherSelected
+                ? 'opacity-100 scale-100 rotate-0'
+                : 'opacity-0 scale-50 -rotate-90'
+            "
+          />
+          <PlusIcon
+            class="absolute inset-0 w-4 h-4 transition-all duration-200 ease-out"
+            :class="
+              isOtherSelected
+                ? 'opacity-0 scale-50 rotate-90'
+                : 'opacity-100 scale-100 rotate-0'
+            "
+          />
+        </span>
         Other
       </button>
     </div>
-    
+
     <!-- Other Input (with animation) -->
     <Transition
       enter-active-class="transition-all duration-200 ease-out"
@@ -158,11 +202,13 @@ const handleOtherBlur = () => {
             @input="handleOtherInput"
             @blur="handleOtherBlur"
           />
-          <p class="text-xs text-subtle mt-1">Separate multiple values with commas</p>
+          <p class="text-xs text-subtle mt-1">
+            Separate multiple values with commas
+          </p>
         </div>
       </div>
     </Transition>
-    
+
     <p v-if="errorMessage" class="text-sm text-red-500">
       {{ errorMessage }}
     </p>

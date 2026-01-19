@@ -43,6 +43,17 @@ const getErrorMessage = (errors: unknown[]): string | undefined => {
   return String(error);
 };
 
+// Public form settings
+const {
+  fetchPublicFormSettings,
+  formatMembershipFee,
+  getGcashAccounts,
+  getBankAccounts,
+  getCashPaymentDetails,
+  formatOpenDays,
+  getMembershipFee,
+} = usePublicFormSettings();
+
 // Location data from API
 const provinces = ref<LocationOption[]>([]);
 const cities = ref<LocationOption[]>([]);
@@ -123,8 +134,12 @@ const handleFormSubmit = async () => {
   await form.handleSubmit();
 };
 
-// Fetch provinces on mount
+// Fetch provinces and form settings on mount
 onMounted(async () => {
+  // Fetch form settings (payment details, membership fee, etc.)
+  await fetchPublicFormSettings();
+
+  // Fetch provinces
   try {
     loadingProvinces.value = true;
     const response = await fetch("https://psgc.gitlab.io/api/provinces/");
@@ -834,7 +849,9 @@ watch(selectedCityCode, async (newCityCode) => {
                 <!-- Industry Tracks -->
                 <form.Field
                   name="mentorshipIndustryTracks"
-                  :validators="{ onBlur: fieldSchemas.mentorshipIndustryTracks }"
+                  :validators="{
+                    onBlur: fieldSchemas.mentorshipIndustryTracks,
+                  }"
                   v-slot="{ field, state }"
                 >
                   <form.Field
@@ -891,7 +908,9 @@ watch(selectedCityCode, async (newCityCode) => {
                   <!-- Availability -->
                   <form.Field
                     name="mentorshipAvailability"
-                    :validators="{ onBlur: fieldSchemas.mentorshipAvailability }"
+                    :validators="{
+                      onBlur: fieldSchemas.mentorshipAvailability,
+                    }"
                     v-slot="{ field, state }"
                   >
                     <FormInput
@@ -923,6 +942,28 @@ watch(selectedCityCode, async (newCityCode) => {
       <div>
         <h2 class="text-2xl font-bold text mb-2">Membership</h2>
         <p class="text-subtle">Choose your payment method.</p>
+      </div>
+
+      <!-- Membership Fee Display -->
+      <div
+        class="bg-primary/5 border border-primary/20 rounded-xl p-4 flex items-center justify-between"
+      >
+        <div class="flex items-center gap-3">
+          <div
+            class="size-10 rounded-lg bg-primary/10 flex items-center justify-center"
+          >
+            <Icon
+              name="material-symbols:payments"
+              class="size-5 text-primary"
+            />
+          </div>
+          <div>
+            <p class="text-sm text-subtle">Lifetime Membership Fee</p>
+            <p class="text-xl font-bold text-primary">
+              {{ formatMembershipFee(getMembershipFee()) }}
+            </p>
+          </div>
+        </div>
       </div>
 
       <div class="space-y-4">
@@ -971,6 +1012,36 @@ watch(selectedCityCode, async (newCityCode) => {
                 <DevicePhoneMobileIcon class="w-5 h-5 text-primary mb-0.5" />
                 GCash Payment Details
               </h3>
+
+              <!-- GCash Accounts Info -->
+              <div
+                v-if="getGcashAccounts().length > 0"
+                class="bg-blue-500/5 border border-blue-500/20 rounded-lg p-4 space-y-3"
+              >
+                <p class="text-sm font-medium text-text">
+                  Send payment to any of the following GCash accounts:
+                </p>
+                <div class="space-y-2">
+                  <div
+                    v-for="(account, index) in getGcashAccounts()"
+                    :key="index"
+                    class="flex items-center gap-3 p-3 bg-surface rounded-lg border border-border"
+                  >
+                    <Icon
+                      name="material-symbols:phone-android"
+                      class="size-5 text-blue-500 shrink-0"
+                    />
+                    <div class="min-w-0 flex-1">
+                      <p class="font-medium text-text truncate">
+                        {{ account.name }}
+                      </p>
+                      <p class="text-sm text-subtle font-mono">
+                        {{ account.number }}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
 
               <!-- GCash Reference Number -->
               <form.Field
@@ -1026,6 +1097,41 @@ watch(selectedCityCode, async (newCityCode) => {
                 <BuildingLibraryIcon class="w-5 h-5 text-primary mb-0.5" />
                 Bank Transfer Details
               </h3>
+
+              <!-- Bank Accounts Info -->
+              <div
+                v-if="getBankAccounts().length > 0"
+                class="bg-green-500/5 border border-green-500/20 rounded-lg p-4 space-y-3"
+              >
+                <p class="text-sm font-medium text-text">
+                  Transfer payment to any of the following bank accounts:
+                </p>
+                <div class="space-y-2">
+                  <div
+                    v-for="(account, index) in getBankAccounts()"
+                    :key="index"
+                    class="p-3 bg-surface rounded-lg border border-border"
+                  >
+                    <div class="flex items-start gap-3">
+                      <Icon
+                        name="material-symbols:account-balance"
+                        class="size-5 text-green-500 shrink-0 mt-1"
+                      />
+                      <div class="min-w-0 flex-1 space-y-1">
+                        <p class="font-medium text-text">
+                          {{ account.bankName }}
+                        </p>
+                        <p class="text-sm text-subtle">
+                          {{ account.accountName }}
+                        </p>
+                        <p class="text-sm text-subtle font-mono">
+                          {{ account.accountNumber }}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
 
               <!-- Sender Name -->
               <form.Field
@@ -1145,6 +1251,76 @@ watch(selectedCityCode, async (newCityCode) => {
                 <BanknotesIcon class="w-5 h-5 text-primary mb-0.5" />
                 Cash Payment Details
               </h3>
+
+              <!-- Cash Payment Location Info -->
+              <div
+                v-if="getCashPaymentDetails()"
+                class="bg-amber-500/5 border border-amber-500/20 rounded-lg p-4 space-y-3"
+              >
+                <p class="text-sm font-medium text-text">
+                  Visit our office to pay in cash:
+                </p>
+                <div
+                  class="p-3 bg-surface rounded-lg border border-border space-y-2"
+                >
+                  <div
+                    v-if="
+                      getCashPaymentDetails()?.building ||
+                      getCashPaymentDetails()?.office
+                    "
+                    class="flex items-start gap-3"
+                  >
+                    <Icon
+                      name="material-symbols:location-on"
+                      class="size-5 text-amber-500 shrink-0 mt-0.5"
+                    />
+                    <div>
+                      <p
+                        v-if="getCashPaymentDetails()?.building"
+                        class="font-medium text-text"
+                      >
+                        {{ getCashPaymentDetails()?.building }}
+                      </p>
+                      <p
+                        v-if="getCashPaymentDetails()?.office"
+                        class="text-sm text-subtle"
+                      >
+                        {{ getCashPaymentDetails()?.office }}
+                      </p>
+                      <p
+                        v-if="getCashPaymentDetails()?.address"
+                        class="text-sm text-subtle"
+                      >
+                        {{ getCashPaymentDetails()?.address }}
+                      </p>
+                    </div>
+                  </div>
+                  <div
+                    v-if="getCashPaymentDetails()?.openDays?.length"
+                    class="flex items-start gap-3"
+                  >
+                    <Icon
+                      name="material-symbols:calendar-today"
+                      class="size-5 text-amber-500 shrink-0 mt-0.5"
+                    />
+                    <div>
+                      <p class="text-sm text-text">
+                        {{
+                          formatOpenDays(
+                            getCashPaymentDetails()?.openDays || [],
+                          )
+                        }}
+                      </p>
+                      <p
+                        v-if="getCashPaymentDetails()?.openHours"
+                        class="text-sm text-subtle"
+                      >
+                        {{ getCashPaymentDetails()?.openHours }}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
 
               <!-- Date of Payment -->
               <form.Field
