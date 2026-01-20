@@ -7,9 +7,13 @@
           <!-- Logo and title -->
           <div class="flex items-center gap-3">
             <div
-              class="w-16 h-16 bg-primary rounded-lg flex items-center justify-center"
+              class="w-16 h-16 bg-white rounded-lg flex items-center justify-center"
             >
-              <span class="text-white font-bold text-2xl">UP</span>
+              <img
+                src="/upc_alum_logo.svg"
+                alt="UPC Alum Logo"
+                class="w-14 h-14 object-contain"
+              />
             </div>
             <div>
               <h3 class="text-lg font-bold text-text leading-tight">
