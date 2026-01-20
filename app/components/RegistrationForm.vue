@@ -93,7 +93,7 @@ const handleFormSubmit = async () => {
   if (!result.success) {
     // Extract and display validation errors
     const errors = result.error.issues.map(
-      (issue) => `${issue.path.join(".")}: ${issue.message}`,
+      (issue) => `${issue.path.join(".")}: ${issue.message}`
     );
     console.error("Validation errors:", errors);
 
@@ -125,7 +125,9 @@ const handleFormSubmit = async () => {
     const { toast } = await import("vue-sonner");
     const errorCount = result.error.issues.length;
     toast.error(
-      `Please fix ${errorCount} error${errorCount > 1 ? "s" : ""} before submitting.`,
+      `Please fix ${errorCount} error${
+        errorCount > 1 ? "s" : ""
+      } before submitting.`
     );
     return;
   }
@@ -152,7 +154,7 @@ onMounted(async () => {
         code: item.code, // Keep code for API lookups
       }))
       .sort((a: LocationOption, b: LocationOption) =>
-        a.label.localeCompare(b.label),
+        a.label.localeCompare(b.label)
       );
   } catch (error) {
     console.error("Error fetching provinces:", error);
@@ -189,7 +191,7 @@ watch(selectedProvinceCode, async (newProvinceCode) => {
   try {
     loadingCities.value = true;
     const response = await fetch(
-      `https://psgc.gitlab.io/api/provinces/${newProvinceCode}/cities-municipalities/`,
+      `https://psgc.gitlab.io/api/provinces/${newProvinceCode}/cities-municipalities/`
     );
     const data = await response.json();
 
@@ -200,7 +202,7 @@ watch(selectedProvinceCode, async (newProvinceCode) => {
         code: item.code, // Keep code for API lookups
       }))
       .sort((a: LocationOption, b: LocationOption) =>
-        a.label.localeCompare(b.label),
+        a.label.localeCompare(b.label)
       );
   } catch (error) {
     console.error("Error fetching cities:", error);
@@ -223,7 +225,7 @@ watch(selectedCityCode, async (newCityCode) => {
   try {
     loadingBarangays.value = true;
     const response = await fetch(
-      `https://psgc.gitlab.io/api/cities-municipalities/${newCityCode}/barangays/`,
+      `https://psgc.gitlab.io/api/cities-municipalities/${newCityCode}/barangays/`
     );
     const data = await response.json();
 
@@ -234,7 +236,7 @@ watch(selectedCityCode, async (newCityCode) => {
         code: item.code, // Keep code for reference
       }))
       .sort((a: LocationOption, b: LocationOption) =>
-        a.label.localeCompare(b.label),
+        a.label.localeCompare(b.label)
       );
   } catch (error) {
     console.error("Error fetching barangays:", error);
@@ -243,6 +245,57 @@ watch(selectedCityCode, async (newCityCode) => {
     loadingBarangays.value = false;
   }
 });
+
+// Clean reactively when payment method changes (BETTER)
+const clearPaymentFields = (method: string) => {
+  if (method === "gcash") {
+    form.setFieldValue("gcashReferenceNumber", "");
+    form.setFieldValue("gcashProofOfPayment", null);
+    form.setFieldMeta("gcashReferenceNumber", (meta) => ({
+      ...meta,
+      errors: [],
+      errorMap: {},
+      isTouched: false,
+    }));
+    form.setFieldMeta("gcashProofOfPayment", (meta) => ({
+      ...meta,
+      errors: [],
+      errorMap: {},
+      isTouched: false,
+    }));
+  } else if (method === "bank") {
+    form.setFieldValue("bankSenderName", "");
+    form.setFieldValue("bankName", "");
+    form.setFieldValue("bankAccountNumber", "");
+    form.setFieldValue("bankReferenceNumber", "");
+    form.setFieldValue("bankProofOfPayment", null);
+    [
+      "bankSenderName",
+      "bankName",
+      "bankAccountNumber",
+      "bankReferenceNumber",
+      "bankProofOfPayment",
+    ].forEach((fieldName) => {
+      form.setFieldMeta(fieldName as any, (meta) => ({
+        ...meta,
+        errors: [],
+        errorMap: {},
+        isTouched: false,
+      }));
+    });
+  } else if (method === "cash") {
+    form.setFieldValue("cashPaymentDate", "");
+    form.setFieldValue("cashReceivedBy", "");
+    ["cashPaymentDate", "cashReceivedBy"].forEach((fieldName) => {
+      form.setFieldMeta(fieldName as any, (meta) => ({
+        ...meta,
+        errors: [],
+        errorMap: {},
+        isTouched: false,
+      }));
+    });
+  }
+};
 </script>
 
 <template>
@@ -984,7 +1037,17 @@ watch(selectedCityCode, async (newCityCode) => {
                 ? getErrorMessage(state.meta.errors)
                 : undefined
             "
-            @update:model-value="field.handleChange"
+            @update:model-value="
+              (val) => {
+                const oldMethod = field.state.value;
+                field.handleChange(val);
+
+                // Clear fields from the old payment method
+                if (oldMethod && oldMethod !== val) {
+                  clearPaymentFields(oldMethod);
+                }
+              }
+            "
             @blur="field.handleBlur"
           />
         </form.Field>
@@ -1307,7 +1370,7 @@ watch(selectedCityCode, async (newCityCode) => {
                       <p class="text-sm text-text">
                         {{
                           formatOpenDays(
-                            getCashPaymentDetails()?.openDays || [],
+                            getCashPaymentDetails()?.openDays || []
                           )
                         }}
                       </p>
