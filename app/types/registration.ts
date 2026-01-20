@@ -158,7 +158,7 @@ export const registrationSchema = z
         const y = parseInt(year);
         return y >= 1970 && y <= new Date().getFullYear();
       },
-      { error: "Year must be between 1970 and current year" },
+      { error: "Year must be between 1970 and current year" }
     ),
     studentNumber: z.string().optional(),
     // Professional
@@ -368,7 +368,7 @@ export const fieldSchemas = {
       const y = parseInt(year);
       return y >= 1970 && y <= new Date().getFullYear();
     },
-    { error: "Year must be between 1970 and current year" },
+    { error: "Year must be between 1970 and current year" }
   ),
   studentNumber: z.string().optional(),
   currentEmployer: z.string().optional(),
