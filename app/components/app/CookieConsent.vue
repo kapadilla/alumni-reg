@@ -1,13 +1,15 @@
 <script setup lang="ts">
 const showBanner = ref(false);
+const route = useRoute();
 const cookieConsent = useCookie("cookie_consent", {
   maxAge: 60 * 60 * 24 * 365, // 1 year
   sameSite: "lax",
 });
 
 onMounted(() => {
-  // Show banner if consent hasn't been given
-  if (!cookieConsent.value) {
+  // Only show banner on admin routes (where auth cookies are used)
+  const isAdminRoute = route.path.startsWith("/admin");
+  if (isAdminRoute && !cookieConsent.value) {
     showBanner.value = true;
   }
 });
