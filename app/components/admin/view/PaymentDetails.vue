@@ -78,17 +78,20 @@ const proofOfPaymentUrl = computed(() => {
   const membership = props.applicant?.membership;
   if (!membership) return null;
 
+  const config = useRuntimeConfig();
+  const mediaBaseUrl = config.public.mediaBaseUrl as string;
+
   const method = membership.paymentMethod?.toLowerCase();
   if (method === "gcash" && membership.gcashProofOfPayment) {
     // Handle relative path from API - prepend base URL if needed
     return membership.gcashProofOfPayment.startsWith("http")
       ? membership.gcashProofOfPayment
-      : `http://localhost:8000${membership.gcashProofOfPayment}`;
+      : `${mediaBaseUrl}${membership.gcashProofOfPayment}`;
   }
   if (method === "bank" && membership.bankProofOfPayment) {
     return membership.bankProofOfPayment.startsWith("http")
       ? membership.bankProofOfPayment
-      : `http://localhost:8000${membership.bankProofOfPayment}`;
+      : `${mediaBaseUrl}${membership.bankProofOfPayment}`;
   }
   return null; // Cash doesn't have proof
 });
