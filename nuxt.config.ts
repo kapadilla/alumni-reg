@@ -9,6 +9,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       apiBaseUrl: "http://127.0.0.1:8000/api/v1",
+      mediaBaseUrl: "http://127.0.0.1:8000",
     },
   },
   vite: {

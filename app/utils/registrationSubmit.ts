@@ -105,9 +105,11 @@ export const submitRegistrationForm = async (
   value: RegistrationFormValues,
 ): Promise<RegistrationSubmitResult> => {
   const formData = buildRegistrationFormData(value);
+  const config = useRuntimeConfig();
+  const apiBaseUrl = config.public.apiBaseUrl as string;
 
   const response = await fetch(
-    "http://localhost:8000/api/v1/registration/submit/",
+    `${apiBaseUrl}/registration/submit/`,
     {
       method: "POST",
       body: formData,

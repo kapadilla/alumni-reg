@@ -1011,7 +1011,7 @@ const clearPaymentFields = (method: string) => {
             />
           </div>
           <div>
-            <p class="text-sm text-subtle">Lifetime Membership Fee</p>
+            <p class="text-sm text-subtle">Membership Fee</p>
             <p class="text-xl font-bold text-primary">
               {{ formatMembershipFee(getMembershipFee()) }}
             </p>
