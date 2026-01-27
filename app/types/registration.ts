@@ -81,7 +81,7 @@ export const registrationFormDefaults = {
   email: "",
   mobileNumber: "",
   currentAddress: "",
-  province: "",
+  province: "Cebu",
   city: "",
   barangay: "",
   zipCode: "",
@@ -90,6 +90,9 @@ export const registrationFormDefaults = {
   degreeProgram: "",
   yearGraduated: "",
   studentNumber: "",
+  unitsThreshold: "",
+  studentIdAttachment: null as File | null,
+  torAttachment: null as File | null,
   // Professional
   currentEmployer: "",
   jobTitle: "",
@@ -158,9 +161,12 @@ export const registrationSchema = z
         const y = parseInt(year);
         return y >= 1970 && y <= new Date().getFullYear();
       },
-      { error: "Year must be between 1970 and current year" }
+      { error: "Year must be between 1970 and current year" },
     ),
     studentNumber: z.string().optional(),
+    unitsThreshold: z.string().optional(),
+    studentIdAttachment: z.instanceof(File).nullable().optional(),
+    torAttachment: z.instanceof(File).nullable().optional(),
     // Professional
     currentEmployer: z.string().optional(),
     jobTitle: z.string().optional(),
@@ -206,12 +212,57 @@ export const registrationSchema = z
     }),
   })
   .superRefine((data, ctx) => {
+    // Conditional validation for non-graduates
+    const isNonGraduate =
+      !data.yearGraduated || data.yearGraduated.trim() === "";
+
+    if (isNonGraduate) {
+      if (!data.unitsThreshold || data.unitsThreshold.trim() === "") {
+        ctx.addIssue({
+          code: "custom",
+          message: "Units completed is required for current students",
+          path: ["unitsThreshold"],
+        });
+      } else {
+        const units = parseInt(data.unitsThreshold);
+        if (isNaN(units) || units < 0 || units > 300) {
+          ctx.addIssue({
+            code: "custom",
+            message: "Please enter a valid number of units (0-300)",
+            path: ["unitsThreshold"],
+          });
+        }
+      }
+
+      if (!data.studentIdAttachment) {
+        ctx.addIssue({
+          code: "custom",
+          message: "Student ID is required for current students",
+          path: ["studentIdAttachment"],
+        });
+      }
+
+      if (!data.torAttachment) {
+        ctx.addIssue({
+          code: "custom",
+          message: "Transcript of Records is required for current students",
+          path: ["torAttachment"],
+        });
+      }
+    }
+
     // Conditional validation based on payment method
     if (data.paymentMethod === "gcash") {
       if (!data.gcashReferenceNumber) {
         ctx.addIssue({
           code: "custom",
           message: "Reference number is required",
+          path: ["gcashReferenceNumber"],
+        });
+      } else if (!/^\d{13}$/.test(data.gcashReferenceNumber)) {
+        ctx.addIssue({
+          code: "custom",
+          message: "Reference number must be exactly 13 digits",
           path: ["gcashReferenceNumber"],
         });
       }
@@ -250,6 +301,12 @@ export const registrationSchema = z
         ctx.addIssue({
           code: "custom",
           message: "Reference number is required",
+          path: ["bankReferenceNumber"],
+        });
+      } else if (data.bankReferenceNumber.length < 6) {
+        ctx.addIssue({
+          code: "custom",
+          message: "Reference number is too short (minimum 6 characters)",
           path: ["bankReferenceNumber"],
         });
       }
@@ -368,9 +425,19 @@ export const fieldSchemas = {
       const y = parseInt(year);
       return y >= 1970 && y <= new Date().getFullYear();
     },
-    { error: "Year must be between 1970 and current year" }
+    { error: "Year must be between 1970 and current year" },
   ),
   studentNumber: z.string().optional(),
+  unitsThreshold: z
+    .string()
+    .min(1, "Units completed is required")
+    .refine(
+      (val) => {
+        const units = parseInt(val);
+        return !isNaN(units) && units >= 0 && units <= 300;
+      },
+      { message: "Please enter a valid number of units (0-300)" },
+    ),
   currentEmployer: z.string().optional(),
   jobTitle: z.string().optional(),
   industry: z.string().optional(),
@@ -392,11 +459,16 @@ export const fieldSchemas = {
   mentorshipAvailability: z.string().min(1, "Please enter your availability"),
   // Payment fields
   paymentMethod: z.string().min(1, "Please select a payment method"),
-  gcashReferenceNumber: z.string().min(1, "Reference number is required"),
+  gcashReferenceNumber: z
+    .string()
+    .min(1, "Reference number is required")
+    .regex(/^\d{13}$/, "Reference number must be exactly 13 digits"),
   bankSenderName: z.string().min(1, "Sender name is required"),
   bankName: z.string().min(1, "Bank name is required"),
   bankAccountNumber: z.string().min(1, "Account number is required"),
-  bankReferenceNumber: z.string().min(1, "Reference number is required"),
+  bankReferenceNumber: z
+    .string()
+    .min(6, "Reference number must be at least 6 characters"),
   cashPaymentDate: z.string().min(1, "Payment date is required"),
   cashReceivedBy: z.string().min(1, "Staff member name is required"),
   dataPrivacyConsent: z.boolean().refine((val) => val === true, {
