@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, onMounted } from "vue";
+import { ref, watch, onMounted, nextTick } from "vue";
 import { useForm } from "@tanstack/vue-form";
 import {
   MapPinIcon,
@@ -8,6 +8,7 @@ import {
   BuildingLibraryIcon,
   BanknotesIcon,
   SparklesIcon,
+  UserIcon,
 } from "@heroicons/vue/24/solid";
 
 import FormInput from "~/components/form/Input.vue";
@@ -74,8 +75,20 @@ const router = useRouter();
 const form = useForm({
   defaultValues: registrationFormDefaults,
   onSubmit: async ({ value }) => {
-    console.log(value);
-    const success = await handleRegistrationSubmit(value);
+    // Clean the data before submitting
+    const cleanedValue: any = { ...value };
+
+    // If yearGraduated is filled, remove non-graduate fields
+    if (
+      cleanedValue.yearGraduated &&
+      cleanedValue.yearGraduated.trim() !== ""
+    ) {
+      delete cleanedValue.unitsThreshold;
+      delete cleanedValue.studentIdAttachment;
+      delete cleanedValue.torAttachment;
+    }
+    console.log(cleanedValue);
+    const success = await handleRegistrationSubmit(cleanedValue);
     if (success) {
       router.push("/success");
     }
@@ -85,7 +98,15 @@ const form = useForm({
 // Custom submit handler that validates with Zod and scrolls to first error
 const handleFormSubmit = async () => {
   // Get current form values
-  const value = form.state.values;
+  // const value = form.state.values;
+  let value: any = { ...form.state.values } as any;
+
+  // If yearGraduated is filled, remove non-graduate fields from submission
+  if (value.yearGraduated && value.yearGraduated.trim() !== "") {
+    delete value.unitsThreshold;
+    delete value.studentIdAttachment;
+    delete value.torAttachment;
+  }
 
   // Validate with Zod schema (includes all conditional validation)
   const result = registrationSchema.safeParse(value);
@@ -93,7 +114,7 @@ const handleFormSubmit = async () => {
   if (!result.success) {
     // Extract and display validation errors
     const errors = result.error.issues.map(
-      (issue) => `${issue.path.join(".")}: ${issue.message}`
+      (issue) => `${issue.path.join(".")}: ${issue.message}`,
     );
     console.error("Validation errors:", errors);
 
@@ -125,9 +146,9 @@ const handleFormSubmit = async () => {
     const { toast } = await import("vue-sonner");
     const errorCount = result.error.issues.length;
     toast.error(
-      `Please fix ${errorCount} error${
+      `Please fill required field${
         errorCount > 1 ? "s" : ""
-      } before submitting.`
+      } before submitting.`,
     );
     return;
   }
@@ -154,8 +175,12 @@ onMounted(async () => {
         code: item.code, // Keep code for API lookups
       }))
       .sort((a: LocationOption, b: LocationOption) =>
-        a.label.localeCompare(b.label)
+        a.label.localeCompare(b.label),
       );
+    const cebuCode = getProvinceCode("Cebu");
+    if (cebuCode) {
+      selectedProvinceCode.value = cebuCode;
+    }
   } catch (error) {
     console.error("Error fetching provinces:", error);
   } finally {
@@ -191,7 +216,7 @@ watch(selectedProvinceCode, async (newProvinceCode) => {
   try {
     loadingCities.value = true;
     const response = await fetch(
-      `https://psgc.gitlab.io/api/provinces/${newProvinceCode}/cities-municipalities/`
+      `https://psgc.gitlab.io/api/provinces/${newProvinceCode}/cities-municipalities/`,
     );
     const data = await response.json();
 
@@ -202,7 +227,7 @@ watch(selectedProvinceCode, async (newProvinceCode) => {
         code: item.code, // Keep code for API lookups
       }))
       .sort((a: LocationOption, b: LocationOption) =>
-        a.label.localeCompare(b.label)
+        a.label.localeCompare(b.label),
       );
   } catch (error) {
     console.error("Error fetching cities:", error);
@@ -225,7 +250,7 @@ watch(selectedCityCode, async (newCityCode) => {
   try {
     loadingBarangays.value = true;
     const response = await fetch(
-      `https://psgc.gitlab.io/api/cities-municipalities/${newCityCode}/barangays/`
+      `https://psgc.gitlab.io/api/cities-municipalities/${newCityCode}/barangays/`,
     );
     const data = await response.json();
 
@@ -236,7 +261,7 @@ watch(selectedCityCode, async (newCityCode) => {
         code: item.code, // Keep code for reference
       }))
       .sort((a: LocationOption, b: LocationOption) =>
-        a.label.localeCompare(b.label)
+        a.label.localeCompare(b.label),
       );
   } catch (error) {
     console.error("Error fetching barangays:", error);
@@ -245,6 +270,24 @@ watch(selectedCityCode, async (newCityCode) => {
     loadingBarangays.value = false;
   }
 });
+
+// Clear non-graduate fields when year graduated is filled
+const clearNonGraduateFields = () => {
+  form.setFieldValue("unitsThreshold", "");
+  form.setFieldValue("studentIdAttachment", null);
+  form.setFieldValue("torAttachment", null);
+
+  ["unitsThreshold", "studentIdAttachment", "torAttachment"].forEach(
+    (fieldName) => {
+      form.setFieldMeta(fieldName as any, (meta) => ({
+        ...meta,
+        errors: [],
+        errorMap: {},
+        isTouched: false,
+      }));
+    },
+  );
+};
 
 // Clean reactively when payment method changes (BETTER)
 const clearPaymentFields = (method: string) => {
@@ -535,6 +578,7 @@ const clearPaymentFields = (method: string) => {
                 placeholder="Select Province"
                 :options="provinces"
                 :loading="loadingProvinces"
+                :disabled="true"
                 :model-value="field.state.value"
                 :error="
                   state.meta.isTouched
@@ -707,7 +751,19 @@ const clearPaymentFields = (method: string) => {
                   ? getErrorMessage(state.meta.errors)
                   : undefined
               "
-              @update:model-value="field.handleChange"
+              @update:model-value="
+                (val) => {
+                  field.handleChange(val);
+
+                  // Clear non-graduate fields whenever year is filled
+                  if (val && val.trim() !== '') {
+                    // Use nextTick to ensure the form state is updated
+                    nextTick(() => {
+                      clearNonGraduateFields();
+                    });
+                  }
+                }
+              "
               @blur="field.handleBlur"
             />
           </form.Field>
@@ -731,6 +787,92 @@ const clearPaymentFields = (method: string) => {
             />
           </form.Field>
         </div>
+
+        <!-- Additional fields for non-graduates -->
+        <form.Subscribe v-slot="{ values }">
+          <Transition
+            enter-active-class="transition-all duration-300 ease-out"
+            enter-from-class="opacity-0 -translate-y-2 max-h-0"
+            enter-to-class="opacity-100 translate-y-0 max-h-[2000px]"
+            leave-active-class="transition-all duration-200 ease-in"
+            leave-from-class="opacity-100 translate-y-0 max-h-[2000px]"
+            leave-to-class="opacity-0 -translate-y-2 max-h-0"
+          >
+            <div
+              v-if="!values.yearGraduated || values.yearGraduated.trim() === ''"
+              class="mt-4 space-y-4 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg p-4"
+            >
+              <h4 class="font-semibold text-text flex items-center gap-2">
+                <UserIcon class="w-5 h-5 text-primary mb-0.5" />
+                Current Student Information
+              </h4>
+
+              <!-- Units Threshold -->
+              <form.Field
+                name="unitsThreshold"
+                :validators="{ onBlur: fieldSchemas.unitsThreshold }"
+                v-slot="{ field, state }"
+              >
+                <FormInput
+                  :id="field.name"
+                  :name="field.name"
+                  label="Units Completed"
+                  type="number"
+                  hint="Total number of units completed"
+                  :required="true"
+                  :model-value="field.state.value"
+                  :error="
+                    state.meta.isTouched
+                      ? getErrorMessage(state.meta.errors)
+                      : undefined
+                  "
+                  @update:model-value="field.handleChange"
+                  @blur="field.handleBlur"
+                />
+              </form.Field>
+
+              <!-- Student ID Attachment -->
+              <form.Field name="studentIdAttachment" v-slot="{ field, state }">
+                <FormFileInput
+                  :id="field.name"
+                  :name="field.name"
+                  label="Student ID"
+                  hint="Upload a clear photo of your student ID"
+                  accept="image/*,.pdf"
+                  :required="true"
+                  :model-value="field.state.value"
+                  :error="
+                    state.meta.isTouched
+                      ? getErrorMessage(state.meta.errors)
+                      : undefined
+                  "
+                  @update:model-value="field.handleChange"
+                  @blur="field.handleBlur"
+                />
+              </form.Field>
+
+              <!-- TOR Attachment -->
+              <form.Field name="torAttachment" v-slot="{ field, state }">
+                <FormFileInput
+                  :id="field.name"
+                  :name="field.name"
+                  label="Transcript of Records (TOR)"
+                  hint="Upload your latest TOR or grade report"
+                  accept="image/*,.pdf"
+                  :required="true"
+                  :model-value="field.state.value"
+                  :error="
+                    state.meta.isTouched
+                      ? getErrorMessage(state.meta.errors)
+                      : undefined
+                  "
+                  @update:model-value="field.handleChange"
+                  @blur="field.handleBlur"
+                />
+              </form.Field>
+            </div>
+          </Transition>
+        </form.Subscribe>
       </div>
     </div>
 
@@ -1079,7 +1221,7 @@ const clearPaymentFields = (method: string) => {
               <!-- GCash Accounts Info -->
               <div
                 v-if="getGcashAccounts().length > 0"
-                class="bg-blue-500/5 border border-blue-500/20 rounded-lg p-4 space-y-3"
+                class="bg-red-500/5 border border-red-500/20 rounded-lg p-4 space-y-3"
               >
                 <p class="text-sm font-medium text-text">
                   Send payment to any of the following GCash accounts:
@@ -1092,7 +1234,7 @@ const clearPaymentFields = (method: string) => {
                   >
                     <Icon
                       name="material-symbols:phone-android"
-                      class="size-5 text-blue-500 shrink-0"
+                      class="size-5 text-red-500 shrink-0"
                     />
                     <div class="min-w-0 flex-1">
                       <p class="font-medium text-text truncate">
@@ -1117,6 +1259,7 @@ const clearPaymentFields = (method: string) => {
                   :name="field.name"
                   label="GCash Reference Number"
                   hint="13-digit reference number from your GCash transaction"
+                  maxlength="13"
                   :model-value="field.state.value"
                   :error="
                     state.meta.isTouched
@@ -1370,7 +1513,7 @@ const clearPaymentFields = (method: string) => {
                       <p class="text-sm text-text">
                         {{
                           formatOpenDays(
-                            getCashPaymentDetails()?.openDays || []
+                            getCashPaymentDetails()?.openDays || [],
                           )
                         }}
                       </p>
