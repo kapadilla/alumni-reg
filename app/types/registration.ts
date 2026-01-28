@@ -88,10 +88,10 @@ export const registrationFormDefaults = {
   // Academic Status
   campus: "UP Cebu",
   degreeProgram: "",
+  isGraduate: false,
   yearGraduated: "",
   studentNumber: "",
   unitsThreshold: "",
-  studentIdAttachment: null as File | null,
   torAttachment: null as File | null,
   // Professional
   currentEmployer: "",
@@ -107,6 +107,7 @@ export const registrationFormDefaults = {
   mentorshipFormat: "",
   mentorshipAvailability: "",
   // Membership Payment
+  idPhoto: null as File | null,
   paymentMethod: "gcash",
   gcashReferenceNumber: "",
   gcashProofOfPayment: null as File | null,
@@ -154,6 +155,7 @@ export const registrationSchema = z
     // Academic Status
     campus: z.string().min(1, "Campus is required"),
     degreeProgram: z.string().min(2, "Degree program is required"),
+    isGraduate: z.boolean().optional(),
     yearGraduated: z.string().refine(
       (year) => {
         if (!year || year === "") return true;
@@ -165,7 +167,6 @@ export const registrationSchema = z
     ),
     studentNumber: z.string().optional(),
     unitsThreshold: z.string().optional(),
-    studentIdAttachment: z.instanceof(File).nullable().optional(),
     torAttachment: z.instanceof(File).nullable().optional(),
     // Professional
     currentEmployer: z.string().optional(),
@@ -181,6 +182,7 @@ export const registrationSchema = z
     mentorshipFormat: z.string().optional(),
     mentorshipAvailability: z.string().optional(),
     // Membership Payment
+    idPhoto: z.any().nullable().optional(),
     paymentMethod: z.string().min(1, "Please select a payment method"),
     gcashReferenceNumber: z.string().optional(),
     gcashProofOfPayment: z
@@ -213,8 +215,7 @@ export const registrationSchema = z
   })
   .superRefine((data, ctx) => {
     // Conditional validation for non-graduates
-    const isNonGraduate =
-      !data.yearGraduated || data.yearGraduated.trim() === "";
+    const isNonGraduate = !data.isGraduate;
 
     if (isNonGraduate) {
       if (!data.unitsThreshold || data.unitsThreshold.trim() === "") {
@@ -234,14 +235,6 @@ export const registrationSchema = z
         }
       }
 
-      if (!data.studentIdAttachment) {
-        ctx.addIssue({
-          code: "custom",
-          message: "Student ID is required for current students",
-          path: ["studentIdAttachment"],
-        });
-      }
-
       if (!data.torAttachment) {
         ctx.addIssue({
           code: "custom",
@@ -249,6 +242,15 @@ export const registrationSchema = z
           path: ["torAttachment"],
         });
       }
+    }
+
+    // 1x1 Photo is required for everyone
+    if (!data.idPhoto) {
+      ctx.addIssue({
+        code: "custom",
+        message: "1x1 ID photo is required",
+        path: ["idPhoto"],
+      });
     }
 
     // Conditional validation based on payment method

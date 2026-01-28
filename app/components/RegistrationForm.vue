@@ -78,13 +78,9 @@ const form = useForm({
     // Clean the data before submitting
     const cleanedValue: any = { ...value };
 
-    // If yearGraduated is filled, remove non-graduate fields
-    if (
-      cleanedValue.yearGraduated &&
-      cleanedValue.yearGraduated.trim() !== ""
-    ) {
+    // If isGraduate is true, remove non-graduate fields
+    if (cleanedValue.isGraduate) {
       delete cleanedValue.unitsThreshold;
-      delete cleanedValue.studentIdAttachment;
       delete cleanedValue.torAttachment;
     }
     console.log(cleanedValue);
@@ -101,10 +97,9 @@ const handleFormSubmit = async () => {
   // const value = form.state.values;
   let value: any = { ...form.state.values } as any;
 
-  // If yearGraduated is filled, remove non-graduate fields from submission
-  if (value.yearGraduated && value.yearGraduated.trim() !== "") {
+  // If isGraduate is true, remove non-graduate fields from submission
+  if (value.isGraduate) {
     delete value.unitsThreshold;
-    delete value.studentIdAttachment;
     delete value.torAttachment;
   }
 
@@ -274,19 +269,16 @@ watch(selectedCityCode, async (newCityCode) => {
 // Clear non-graduate fields when year graduated is filled
 const clearNonGraduateFields = () => {
   form.setFieldValue("unitsThreshold", "");
-  form.setFieldValue("studentIdAttachment", null);
   form.setFieldValue("torAttachment", null);
 
-  ["unitsThreshold", "studentIdAttachment", "torAttachment"].forEach(
-    (fieldName) => {
-      form.setFieldMeta(fieldName as any, (meta) => ({
-        ...meta,
-        errors: [],
-        errorMap: {},
-        isTouched: false,
-      }));
-    },
-  );
+  ["unitsThreshold", "torAttachment"].forEach((fieldName) => {
+    form.setFieldMeta(fieldName as any, (meta) => ({
+      ...meta,
+      errors: [],
+      errorMap: {},
+      isTouched: false,
+    }));
+  });
 };
 
 // Clean reactively when payment method changes (BETTER)
@@ -731,6 +723,34 @@ const clearPaymentFields = (method: string) => {
           />
         </form.Field>
 
+        <!-- I am a graduate checkbox -->
+        <form.Field name="isGraduate" v-slot="{ field, state }">
+          <FormCheckbox
+            :id="field.name"
+            :name="field.name"
+            :model-value="field.state.value"
+            :error="
+              state.meta.isTouched
+                ? getErrorMessage(state.meta.errors)
+                : undefined
+            "
+            @update:model-value="
+              (val) => {
+                field.handleChange(val);
+                // Clear non-graduate fields when checked
+                if (val) {
+                  nextTick(() => {
+                    clearNonGraduateFields();
+                  });
+                }
+              }
+            "
+            @blur="field.handleBlur"
+          >
+            I am a graduate
+          </FormCheckbox>
+        </form.Field>
+
         <div class="grid grid-cols-2 sm:grid-cols-2 gap-4">
           <!-- Year Graduated -->
           <form.Field
@@ -751,19 +771,7 @@ const clearPaymentFields = (method: string) => {
                   ? getErrorMessage(state.meta.errors)
                   : undefined
               "
-              @update:model-value="
-                (val) => {
-                  field.handleChange(val);
-
-                  // Clear non-graduate fields whenever year is filled
-                  if (val && val.trim() !== '') {
-                    // Use nextTick to ensure the form state is updated
-                    nextTick(() => {
-                      clearNonGraduateFields();
-                    });
-                  }
-                }
-              "
+              @update:model-value="field.handleChange"
               @blur="field.handleBlur"
             />
           </form.Field>
@@ -799,13 +807,16 @@ const clearPaymentFields = (method: string) => {
             leave-to-class="opacity-0 -translate-y-2 max-h-0"
           >
             <div
-              v-if="!values.yearGraduated || values.yearGraduated.trim() === ''"
+              v-if="!values.isGraduate"
               class="mt-4 space-y-4 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg p-4"
             >
               <h4 class="font-semibold text-text flex items-center gap-2">
                 <UserIcon class="w-5 h-5 text-primary mb-0.5" />
-                Current Student Information
+                Student Information
               </h4>
+              <p class="text-sm text-subtle -mt-2">
+                If you are not a graduate, please fill in the fields below
+              </p>
 
               <!-- Units Threshold -->
               <form.Field
@@ -819,26 +830,6 @@ const clearPaymentFields = (method: string) => {
                   label="Units Completed"
                   type="number"
                   hint="Total number of units completed"
-                  :required="true"
-                  :model-value="field.state.value"
-                  :error="
-                    state.meta.isTouched
-                      ? getErrorMessage(state.meta.errors)
-                      : undefined
-                  "
-                  @update:model-value="field.handleChange"
-                  @blur="field.handleBlur"
-                />
-              </form.Field>
-
-              <!-- Student ID Attachment -->
-              <form.Field name="studentIdAttachment" v-slot="{ field, state }">
-                <FormFileInput
-                  :id="field.name"
-                  :name="field.name"
-                  label="Student ID"
-                  hint="Upload a clear photo of your student ID"
-                  accept="image/*,.pdf"
                   :required="true"
                   :model-value="field.state.value"
                   :error="
@@ -1159,6 +1150,28 @@ const clearPaymentFields = (method: string) => {
             </p>
           </div>
         </div>
+      </div>
+
+      <!-- 1x1 Picture Upload -->
+      <div class="space-y-2">
+        <form.Field name="idPhoto" v-slot="{ field, state }">
+          <FormFileInput
+            :id="field.name"
+            :name="field.name"
+            label="1x1 ID Picture"
+            hint="Upload a recent 1x1 ID photo for your Alumni ID"
+            accept="image/*"
+            :required="true"
+            :model-value="field.state.value"
+            :error="
+              state.meta.isTouched
+                ? getErrorMessage(state.meta.errors)
+                : undefined
+            "
+            @update:model-value="field.handleChange"
+            @blur="field.handleBlur"
+          />
+        </form.Field>
       </div>
 
       <div class="space-y-4">
