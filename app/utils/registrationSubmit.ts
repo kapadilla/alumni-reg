@@ -84,6 +84,14 @@ export const buildRegistrationFormData = (
   if (value.bankProofOfPayment) {
     formData.append("bankProofOfPayment", value.bankProofOfPayment);
   }
+  if (value.idPhoto) {
+    formData.append("idPhoto", value.idPhoto);
+  }
+  if (!value.yearGraduated) {
+    if (value.torAttachment) {
+      formData.append("torAttachment", value.torAttachment);
+    }
+  }
 
   return formData;
 };
