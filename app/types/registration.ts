@@ -440,6 +440,19 @@ export const fieldSchemas = {
       },
       { message: "Please enter a valid number of units (0-300)" },
     ),
+  torAttachment: z
+    .instanceof(File, { message: "Please upload your Transcript of Records" })
+    .refine(
+      (file) => file.size <= 5 * 1024 * 1024,
+      "File size must be less than 5MB",
+    )
+    .refine(
+      (file) =>
+        ["image/jpeg", "image/png", "image/jpg", "application/pdf"].includes(
+          file.type,
+        ),
+      "File must be an image (JPEG, PNG) or PDF",
+    ),
   currentEmployer: z.string().optional(),
   jobTitle: z.string().optional(),
   industry: z.string().optional(),
@@ -460,17 +473,57 @@ export const fieldSchemas = {
   mentorshipFormat: z.string().min(1, "Please select a mentorship format"),
   mentorshipAvailability: z.string().min(1, "Please enter your availability"),
   // Payment fields
+  idPhoto: z
+    .instanceof(File, { message: "Please upload your 1x1 ID photo" })
+    .refine(
+      (file) => file.size <= 5 * 1024 * 1024,
+      "File size must be less than 5MB",
+    )
+    .refine(
+      (file) => ["image/jpeg", "image/png", "image/jpg"].includes(file.type),
+      "File must be an image (JPEG, PNG, JPG)",
+    ),
   paymentMethod: z.string().min(1, "Please select a payment method"),
   gcashReferenceNumber: z
     .string()
     .min(1, "Reference number is required")
     .regex(/^\d{13}$/, "Reference number must be exactly 13 digits"),
+  gcashProofOfPayment: z
+    .instanceof(File, { message: "Please upload proof of payment" })
+    .refine(
+      (file) => file.size <= 5 * 1024 * 1024,
+      "File size must be less than 5MB",
+    )
+    .refine(
+      (file) =>
+        ["image/jpeg", "image/png", "image/jpg", "image/webp"].includes(
+          file.type,
+        ),
+      "File must be an image (JPEG, PNG, WebP)",
+    ),
   bankSenderName: z.string().min(1, "Sender name is required"),
   bankName: z.string().min(1, "Bank name is required"),
   bankAccountNumber: z.string().min(1, "Account number is required"),
   bankReferenceNumber: z
     .string()
     .min(6, "Reference number must be at least 6 characters"),
+  bankProofOfPayment: z
+    .instanceof(File, { message: "Please upload proof of payment" })
+    .refine(
+      (file) => file.size <= 5 * 1024 * 1024,
+      "File size must be less than 5MB",
+    )
+    .refine(
+      (file) =>
+        [
+          "image/jpeg",
+          "image/png",
+          "image/jpg",
+          "image/webp",
+          "application/pdf",
+        ].includes(file.type),
+      "File must be an image (JPEG, PNG, WebP) or PDF",
+    ),
   cashPaymentDate: z.string().min(1, "Payment date is required"),
   cashReceivedBy: z.string().min(1, "Staff member name is required"),
   dataPrivacyConsent: z.boolean().refine((val) => val === true, {
