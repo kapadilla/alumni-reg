@@ -133,6 +133,11 @@ export const usePublicFormSettings = () => {
   const getMembershipFee = (): number => {
     return publicFormSettings.value?.membershipFee || 1450;
   };
+  //Get minimum units required for non-graduate students
+
+  const getMinimumUnits = () => {
+    return publicFormSettings.value?.minimumUnits || 30;
+  };
 
   return {
     publicFormSettings: readonly(publicFormSettings),
@@ -146,5 +151,6 @@ export const usePublicFormSettings = () => {
     formatOpenDays,
     getSuccessMessage,
     getMembershipFee,
+    getMinimumUnits,
   };
 };

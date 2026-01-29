@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, onMounted, nextTick } from "vue";
+import { ref, watch, onMounted, nextTick, computed } from "vue";
 import { useForm } from "@tanstack/vue-form";
 import {
   MapPinIcon,
@@ -53,6 +53,7 @@ const {
   getCashPaymentDetails,
   formatOpenDays,
   getMembershipFee,
+  getMinimumUnits,
 } = usePublicFormSettings();
 
 // Location data from API
@@ -79,7 +80,7 @@ const form = useForm({
     const cleanedValue: any = { ...value };
 
     // If isGraduate is true, remove non-graduate fields
-    if (cleanedValue.isGraduate) {
+    if (cleanedValue.yearGraduated) {
       delete cleanedValue.unitsThreshold;
       delete cleanedValue.torAttachment;
     }
@@ -98,7 +99,7 @@ const handleFormSubmit = async () => {
   let value: any = { ...form.state.values } as any;
 
   // If isGraduate is true, remove non-graduate fields from submission
-  if (value.isGraduate) {
+  if (value.yearGraduated) {
     delete value.unitsThreshold;
     delete value.torAttachment;
   }
@@ -152,6 +153,31 @@ const handleFormSubmit = async () => {
   await form.handleSubmit();
 };
 
+// Create a dynamic validator for units threshold
+const unitsThresholdValidator = {
+  onBlur: ({ value }: { value: string }) => {
+    if (!value || value.trim() === "") {
+      return "Units completed is required";
+    }
+
+    const units = parseInt(value);
+    const minUnits = getMinimumUnits();
+
+    if (isNaN(units)) {
+      return "Please enter a valid number";
+    }
+
+    if (units < minUnits) {
+      return `Units must be at least ${minUnits}`;
+    }
+
+    if (units > 300) {
+      return "Units cannot exceed 300";
+    }
+
+    return undefined; // No error
+  },
+};
 // Fetch provinces and form settings on mount
 onMounted(async () => {
   // Fetch form settings (payment details, membership fee, etc.)
@@ -723,34 +749,6 @@ const clearPaymentFields = (method: string) => {
           />
         </form.Field>
 
-        <!-- I am a graduate checkbox -->
-        <form.Field name="isGraduate" v-slot="{ field, state }">
-          <FormCheckbox
-            :id="field.name"
-            :name="field.name"
-            :model-value="field.state.value"
-            :error="
-              state.meta.isTouched
-                ? getErrorMessage(state.meta.errors)
-                : undefined
-            "
-            @update:model-value="
-              (val) => {
-                field.handleChange(val);
-                // Clear non-graduate fields when checked
-                if (val) {
-                  nextTick(() => {
-                    clearNonGraduateFields();
-                  });
-                }
-              }
-            "
-            @blur="field.handleBlur"
-          >
-            I am a graduate
-          </FormCheckbox>
-        </form.Field>
-
         <div class="grid grid-cols-2 sm:grid-cols-2 gap-4">
           <!-- Year Graduated -->
           <form.Field
@@ -771,7 +769,16 @@ const clearPaymentFields = (method: string) => {
                   ? getErrorMessage(state.meta.errors)
                   : undefined
               "
-              @update:model-value="field.handleChange"
+              @update:model-value="
+                (val: string) => {
+                  field.handleChange(val);
+                  if (val) {
+                    nextTick(() => {
+                      clearNonGraduateFields();
+                    });
+                  }
+                }
+              "
               @blur="field.handleBlur"
             />
           </form.Field>
@@ -807,7 +814,7 @@ const clearPaymentFields = (method: string) => {
             leave-to-class="opacity-0 -translate-y-2 max-h-0"
           >
             <div
-              v-if="!values.isGraduate"
+              v-if="!values.yearGraduated"
               class="mt-4 space-y-4 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg p-4"
             >
               <h4 class="font-semibold text-text flex items-center gap-2">
@@ -821,7 +828,7 @@ const clearPaymentFields = (method: string) => {
               <!-- Units Threshold -->
               <form.Field
                 name="unitsThreshold"
-                :validators="{ onBlur: fieldSchemas.unitsThreshold }"
+                :validators="unitsThresholdValidator"
                 v-slot="{ field, state }"
               >
                 <FormInput
@@ -829,7 +836,8 @@ const clearPaymentFields = (method: string) => {
                   :name="field.name"
                   label="Units Completed"
                   type="number"
-                  hint="Total number of units completed"
+                  :min="getMinimumUnits()"
+                  :hint="`Minimum ${getMinimumUnits()} units required`"
                   :required="true"
                   :model-value="field.state.value"
                   :error="
@@ -843,7 +851,14 @@ const clearPaymentFields = (method: string) => {
               </form.Field>
 
               <!-- TOR Attachment -->
-              <form.Field name="torAttachment" v-slot="{ field, state }">
+              <form.Field
+                name="torAttachment"
+                :validators="{
+                  onChange: fieldSchemas.torAttachment,
+                  onBlur: fieldSchemas.torAttachment,
+                }"
+                v-slot="{ field, state }"
+              >
                 <FormFileInput
                   :id="field.name"
                   :name="field.name"
@@ -1154,7 +1169,14 @@ const clearPaymentFields = (method: string) => {
 
       <!-- 1x1 Picture Upload -->
       <div class="space-y-2">
-        <form.Field name="idPhoto" v-slot="{ field, state }">
+        <form.Field
+          name="idPhoto"
+          :validators="{
+            onChange: fieldSchemas.idPhoto,
+            onBlur: fieldSchemas.idPhoto,
+          }"
+          v-slot="{ field, state }"
+        >
           <FormFileInput
             :id="field.name"
             :name="field.name"
@@ -1285,7 +1307,14 @@ const clearPaymentFields = (method: string) => {
               </form.Field>
 
               <!-- GCash Proof of Payment -->
-              <form.Field name="gcashProofOfPayment" v-slot="{ field, state }">
+              <form.Field
+                name="gcashProofOfPayment"
+                :validators="{
+                  onChange: fieldSchemas.gcashProofOfPayment,
+                  onBlur: fieldSchemas.gcashProofOfPayment,
+                }"
+                v-slot="{ field, state }"
+              >
                 <FormFileInput
                   :id="field.name"
                   :name="field.name"
@@ -1439,7 +1468,14 @@ const clearPaymentFields = (method: string) => {
               </form.Field>
 
               <!-- Proof of Transfer -->
-              <form.Field name="bankProofOfPayment" v-slot="{ field, state }">
+              <form.Field
+                name="bankProofOfPayment"
+                :validators="{
+                  onChange: fieldSchemas.bankProofOfPayment,
+                  onBlur: fieldSchemas.bankProofOfPayment,
+                }"
+                v-slot="{ field, state }"
+              >
                 <FormFileInput
                   :id="field.name"
                   :name="field.name"
