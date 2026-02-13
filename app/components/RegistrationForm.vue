@@ -123,12 +123,7 @@ const handleFormSubmit = async () => {
 
     // Show error toast with count
     const { toast } = await import("vue-sonner");
-    const errorCount = result.error.issues.length;
-    toast.error(
-      `Please fix ${errorCount} error${
-        errorCount > 1 ? "s" : ""
-      } before submitting.`
-    );
+    toast.error("Some required fields need your attention. Please review and try again.")
     return;
   }
 

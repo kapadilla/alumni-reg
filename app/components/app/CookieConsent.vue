@@ -39,7 +39,7 @@ const declineCookies = () => {
           <div class="flex-1">
             <div class="flex items-start gap-3">
               <div
-                class="flex-shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center"
+                class="shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center"
               >
                 <Icon
                   name="material-symbols:cookie-outline"
@@ -69,7 +69,7 @@ const declineCookies = () => {
           </div>
 
           <!-- Action Buttons -->
-          <div class="flex gap-3 md:flex-shrink-0">
+          <div class="flex gap-3 md:shrink-0">
             <button
               class="px-5 py-2.5 text-sm font-medium text-subtle hover:text-text border border-border rounded-xl hover:bg-background transition-colors"
               @click="declineCookies"
