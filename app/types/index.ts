@@ -378,4 +378,5 @@ export interface PublicFormSettingsResponse {
     cash: CashPaymentDetails;
   };
   successMessage: string;
+  minimumUnits?: number;
 }

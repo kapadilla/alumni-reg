@@ -81,15 +81,18 @@ export const registrationFormDefaults = {
   email: "",
   mobileNumber: "",
   currentAddress: "",
-  province: "",
+  province: "Cebu",
   city: "",
   barangay: "",
   zipCode: "",
   // Academic Status
   campus: "UP Cebu",
   degreeProgram: "",
+  isGraduate: false,
   yearGraduated: "",
   studentNumber: "",
+  unitsThreshold: "",
+  torAttachment: null as File | null,
   // Professional
   currentEmployer: "",
   jobTitle: "",
@@ -104,6 +107,7 @@ export const registrationFormDefaults = {
   mentorshipFormat: "",
   mentorshipAvailability: "",
   // Membership Payment
+  idPhoto: null as File | null,
   paymentMethod: "gcash",
   gcashReferenceNumber: "",
   gcashProofOfPayment: null as File | null,
@@ -151,6 +155,7 @@ export const registrationSchema = z
     // Academic Status
     campus: z.string().min(1, "Campus is required"),
     degreeProgram: z.string().min(2, "Degree program is required"),
+    isGraduate: z.boolean().optional(),
     yearGraduated: z.string().refine(
       (year) => {
         if (!year || year === "") return true;
@@ -158,9 +163,11 @@ export const registrationSchema = z
         const y = parseInt(year);
         return y >= 1970 && y <= new Date().getFullYear();
       },
-      { error: "Year must be between 1970 and current year" }
+      { error: "Year must be between 1970 and current year" },
     ),
     studentNumber: z.string().optional(),
+    unitsThreshold: z.string().optional(),
+    torAttachment: z.instanceof(File).nullable().optional(),
     // Professional
     currentEmployer: z.string().optional(),
     jobTitle: z.string().optional(),
@@ -175,6 +182,7 @@ export const registrationSchema = z
     mentorshipFormat: z.string().optional(),
     mentorshipAvailability: z.string().optional(),
     // Membership Payment
+    idPhoto: z.any().nullable().optional(),
     paymentMethod: z.string().min(1, "Please select a payment method"),
     gcashReferenceNumber: z.string().optional(),
     gcashProofOfPayment: z
@@ -206,12 +214,57 @@ export const registrationSchema = z
     }),
   })
   .superRefine((data, ctx) => {
+    // Conditional validation for non-graduates
+    const isNonGraduate = !data.isGraduate;
+
+    if (isNonGraduate) {
+      if (!data.unitsThreshold || data.unitsThreshold.trim() === "") {
+        ctx.addIssue({
+          code: "custom",
+          message: "Units completed is required for current students",
+          path: ["unitsThreshold"],
+        });
+      } else {
+        const units = parseInt(data.unitsThreshold);
+        if (isNaN(units) || units < 0 || units > 300) {
+          ctx.addIssue({
+            code: "custom",
+            message: "Please enter a valid number of units (0-300)",
+            path: ["unitsThreshold"],
+          });
+        }
+      }
+
+      if (!data.torAttachment) {
+        ctx.addIssue({
+          code: "custom",
+          message: "Transcript of Records is required for current students",
+          path: ["torAttachment"],
+        });
+      }
+    }
+
+    // 1x1 Photo is required for everyone
+    if (!data.idPhoto) {
+      ctx.addIssue({
+        code: "custom",
+        message: "1x1 ID photo is required",
+        path: ["idPhoto"],
+      });
+    }
+
     // Conditional validation based on payment method
     if (data.paymentMethod === "gcash") {
       if (!data.gcashReferenceNumber) {
         ctx.addIssue({
           code: "custom",
           message: "Reference number is required",
+          path: ["gcashReferenceNumber"],
+        });
+      } else if (!/^\d{13}$/.test(data.gcashReferenceNumber)) {
+        ctx.addIssue({
+          code: "custom",
+          message: "Reference number must be exactly 13 digits",
           path: ["gcashReferenceNumber"],
         });
       }
@@ -250,6 +303,12 @@ export const registrationSchema = z
         ctx.addIssue({
           code: "custom",
           message: "Reference number is required",
+          path: ["bankReferenceNumber"],
+        });
+      } else if (data.bankReferenceNumber.length < 6) {
+        ctx.addIssue({
+          code: "custom",
+          message: "Reference number is too short (minimum 6 characters)",
           path: ["bankReferenceNumber"],
         });
       }
@@ -368,9 +427,32 @@ export const fieldSchemas = {
       const y = parseInt(year);
       return y >= 1970 && y <= new Date().getFullYear();
     },
-    { error: "Year must be between 1970 and current year" }
+    { error: "Year must be between 1970 and current year" },
   ),
   studentNumber: z.string().optional(),
+  unitsThreshold: z
+    .string()
+    .min(1, "Units completed is required")
+    .refine(
+      (val) => {
+        const units = parseInt(val);
+        return !isNaN(units) && units >= 0 && units <= 300;
+      },
+      { message: "Please enter a valid number of units (0-300)" },
+    ),
+  torAttachment: z
+    .instanceof(File, { message: "Please upload your Transcript of Records" })
+    .refine(
+      (file) => file.size <= 5 * 1024 * 1024,
+      "File size must be less than 5MB",
+    )
+    .refine(
+      (file) =>
+        ["image/jpeg", "image/png", "image/jpg", "application/pdf"].includes(
+          file.type,
+        ),
+      "File must be an image (JPEG, PNG) or PDF",
+    ),
   currentEmployer: z.string().optional(),
   jobTitle: z.string().optional(),
   industry: z.string().optional(),
@@ -391,12 +473,57 @@ export const fieldSchemas = {
   mentorshipFormat: z.string().min(1, "Please select a mentorship format"),
   mentorshipAvailability: z.string().min(1, "Please enter your availability"),
   // Payment fields
+  idPhoto: z
+    .instanceof(File, { message: "Please upload your 1x1 ID photo" })
+    .refine(
+      (file) => file.size <= 5 * 1024 * 1024,
+      "File size must be less than 5MB",
+    )
+    .refine(
+      (file) => ["image/jpeg", "image/png", "image/jpg"].includes(file.type),
+      "File must be an image (JPEG, PNG, JPG)",
+    ),
   paymentMethod: z.string().min(1, "Please select a payment method"),
-  gcashReferenceNumber: z.string().min(1, "Reference number is required"),
+  gcashReferenceNumber: z
+    .string()
+    .min(1, "Reference number is required")
+    .regex(/^\d{13}$/, "Reference number must be exactly 13 digits"),
+  gcashProofOfPayment: z
+    .instanceof(File, { message: "Please upload proof of payment" })
+    .refine(
+      (file) => file.size <= 5 * 1024 * 1024,
+      "File size must be less than 5MB",
+    )
+    .refine(
+      (file) =>
+        ["image/jpeg", "image/png", "image/jpg", "image/webp"].includes(
+          file.type,
+        ),
+      "File must be an image (JPEG, PNG, WebP)",
+    ),
   bankSenderName: z.string().min(1, "Sender name is required"),
   bankName: z.string().min(1, "Bank name is required"),
   bankAccountNumber: z.string().min(1, "Account number is required"),
-  bankReferenceNumber: z.string().min(1, "Reference number is required"),
+  bankReferenceNumber: z
+    .string()
+    .min(6, "Reference number must be at least 6 characters"),
+  bankProofOfPayment: z
+    .instanceof(File, { message: "Please upload proof of payment" })
+    .refine(
+      (file) => file.size <= 5 * 1024 * 1024,
+      "File size must be less than 5MB",
+    )
+    .refine(
+      (file) =>
+        [
+          "image/jpeg",
+          "image/png",
+          "image/jpg",
+          "image/webp",
+          "application/pdf",
+        ].includes(file.type),
+      "File must be an image (JPEG, PNG, WebP) or PDF",
+    ),
   cashPaymentDate: z.string().min(1, "Payment date is required"),
   cashReceivedBy: z.string().min(1, "Staff member name is required"),
   dataPrivacyConsent: z.boolean().refine((val) => val === true, {
